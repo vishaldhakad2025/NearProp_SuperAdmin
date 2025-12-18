@@ -1,0 +1,24 @@
+@keyframes typing {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}
+
+.typing-dots {
+  display: inline-block;
+  width: 24px;
+  text-align: left;
+  animation: typing 1s infinite;
+}
+
+.statistic-card .ant-statistic-title {
+  color: #4a5568;
+}
+
+.statistic-card .ant-statistic-content {
+  font-weight: bold;
+}
+
+.franchisee-row:hover {
+  background-color: #f1f5f9;
+}

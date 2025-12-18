@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/* Optional: stripe row style for table */
+.ant-table-row.bg-gray-50 {
+  background-color: #f0eeee !important;
+  border-radius: 10px;
+}
