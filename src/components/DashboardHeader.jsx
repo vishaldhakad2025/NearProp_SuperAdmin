@@ -80,12 +80,12 @@ const DashboardHeader = ({ onMenuClick, isSidebarOpen }) => {
               >
                 <FaUser /> Profile
               </button>
-              {/* <button
+              <button
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-sm"
                 onClick={() => navigate("/dashboard/settings")}
               >
                 <FaCog /> Settings
-              </button> */}
+              </button>
               <hr />
               <button
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-red-600 text-sm"

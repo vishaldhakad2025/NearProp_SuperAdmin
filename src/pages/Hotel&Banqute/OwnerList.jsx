@@ -56,7 +56,6 @@ const OwnerList = () => {
           dataSource={owners}
           columns={columns}
           pagination={{ pageSize: 5 }}
-          scroll={{ x: 'max-content' }} 
         />
       )}
     </Card>

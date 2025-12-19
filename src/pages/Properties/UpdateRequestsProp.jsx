@@ -154,12 +154,16 @@ const PropertyUpdateRequests = () => {
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         onOk={handleSubmitReview}
-        okText={actionType === "approve" ? "Approve" : "Reject"}
-okButtonProps={{
-  danger: actionType === "reject",
-  style: { display: actionType === "view" ? "none" : "inline-block" },
-}}
-
+        okText={
+          actionType === "approve"
+            ? "Approve"
+            : actionType === "reject"
+            ? "Reject"
+            : "Close"
+        }
+        okButtonProps={{
+          danger: actionType === "reject",
+        }}
         cancelButtonProps={{
           style: { display: actionType === "view" ? "none" : "inline-block" },
         }}

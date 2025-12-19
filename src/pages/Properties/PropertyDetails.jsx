@@ -206,9 +206,9 @@ const PropertyDetails = () => {
               </div>
               <Divider className="my-4 border-gray-200" />
               <div className="flex flex-wrap gap-3">
-                {/* <Tag color="blue" icon={<HomeOutlined />}>
+                <Tag color="blue" icon={<HomeOutlined />}>
                   Property ID: {prop.permanentId}
-                </Tag> */}
+                </Tag>
                 <Tag color="green" icon={<DollarCircleOutlined />}>
                   Year Built: {prop.yearBuilt}
                 </Tag>
@@ -276,7 +276,7 @@ const PropertyDetails = () => {
             >
               <Descriptions bordered column={{ xs: 1, sm: 2 }} size="small">
                 <Descriptions.Item label="Property ID">
-                  {prop.id}
+                  {prop.propertyId}
                 </Descriptions.Item>
                 <Descriptions.Item label="Price">
                   ₹{prop.price?.toLocaleString()}
@@ -530,7 +530,7 @@ const PropertyDetails = () => {
             </div>
           )}
           {/* Reviews Section */}
-          {/* <Card title="Reviews" className="shadow rounded-xl"> */}
+          <Card title="Reviews" className="shadow rounded-xl">
             {/* {reviewsLoading ? (
               <Spin />
             ) : reviews.length === 0 ? (
@@ -592,7 +592,7 @@ const PropertyDetails = () => {
                 Submit Review
               </Button>
             </form> */}
-          {/* </Card> */}
+          </Card>
           <Divider />
         </div>
       </div>

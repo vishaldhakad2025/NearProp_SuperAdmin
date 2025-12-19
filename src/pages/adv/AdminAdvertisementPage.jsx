@@ -212,7 +212,6 @@ const AdminAdvertisementPage = () => {
                     onChange: (page) => setCurrentPage(page),
                   }}
                   rowKey="id"
-                  scroll={{ x: 'max-content' }} 
                 />
               </>
             )}

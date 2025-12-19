@@ -18,32 +18,69 @@ export const sendOtp = createAsyncThunk("auth/sendOtp", async (mobileNumber, { r
 });
 
 // Verify OTP and store token
-export const verifyOtp = createAsyncThunk("auth/verifyOtp", async ({ mobileNumber, otp }, { rejectWithValue }) => {
-  try {
-    const res = await axiosInstance.post(`${authPrefix}/verify-otp`, {
-      identifier: mobileNumber,
-      code: otp,
-      type: "MOBILE",
-      deviceInfo: "web-client",
-    });
+// export const verifyOtp = createAsyncThunk("auth/verifyOtp", async ({ mobileNumber, otp }, { rejectWithValue }) => {
+//   try {
+//     const res = await axiosInstance.post(`${authPrefix}/verify-otp`, {
+//       identifier: mobileNumber,
+//       code: otp,
+//       type: "MOBILE",
+//       deviceInfo: "web-client",
+//     });
 
-    const { token, userId, roles } = res.data.data;
+//     const { token, userId, roles } = res.data.data;
 
-    localStorage.setItem("token", token);
-    localStorage.setItem("userId", userId);
-    localStorage.setItem("roles", JSON.stringify(roles));
+//     localStorage.setItem("token", token);
+//     localStorage.setItem("userId", userId);
+//     localStorage.setItem("roles", JSON.stringify(roles));
 
-    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+//     axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-    return {
+//     return {
+//         token,
+//         userId,
+//         roles,
+//       };
+//   } catch (error) {
+//     return rejectWithValue(error.response?.data || { message: error.message });
+//   }
+// });
+
+export const verifyOtp = createAsyncThunk(
+  "auth/verifyOtp",
+  async ({ mobileNumber, otp }, { rejectWithValue }) => {
+    try {
+      const res = await axiosInstance.post(`${authPrefix}/verify-otp`, {
+        identifier: mobileNumber,
+        code: otp,
+        type: "MOBILE",
+        deviceInfo: "web-client",
+      });
+
+      const { token, subAdminToken, userId, roles } = res.data.data;
+
+      // Store tokens separately
+      localStorage.setItem("token", token); // general token
+      if (subAdminToken) {
+        localStorage.setItem("subAdminToken", subAdminToken); // sub-admin token
+      }
+      localStorage.setItem("userId", userId);
+      localStorage.setItem("roles", JSON.stringify(roles));
+
+      // Set default axios Authorization header for main token
+      axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      return {
         token,
+        subAdminToken,
         userId,
         roles,
       };
-  } catch (error) {
-    return rejectWithValue(error.response?.data || { message: error.message });
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: error.message });
+    }
   }
-});
+);
+
 
 // Fetch User Profile after verifying OTP
 export const fetchUserProfile = createAsyncThunk("auth/fetchUserProfile", async (_, { rejectWithValue }) => {

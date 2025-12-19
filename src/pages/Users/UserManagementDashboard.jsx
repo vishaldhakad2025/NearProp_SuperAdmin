@@ -513,26 +513,21 @@ const UserManagementDashboard = () => {
         {/* Table */}
         <div className="bg-white border border-gray-100 p-0 rounded-xl overflow-hidden">
           <Table
-  columns={columns}
-  dataSource={filteredUsers}
-  rowKey="id"
-  size={tableSize}
-  pagination={
-    filteredUsers.length >= size
-      ? {
-          current: page + 1,
-          pageSize: size,
-          total: totalElements || filteredUsers.length,
-          onChange: (p) => setPage(p - 1),
-          showSizeChanger: false,
-          responsive: true,
-        }
-      : false
-  }
-  scroll={{ x: 900 }}
-  className="users-table"
-/>
-
+            columns={columns}
+            dataSource={filteredUsers}
+            rowKey="id"
+            size={tableSize}
+            pagination={{
+              current: page + 1,
+              pageSize: size,
+              total: totalElements || 0,
+              onChange: (p) => setPage(p - 1),
+              showSizeChanger: false,
+              responsive: true,
+            }}
+            scroll={{ x: 900 }}
+            className="users-table"
+          />
         </div>
 
         {/* Details Drawer */}

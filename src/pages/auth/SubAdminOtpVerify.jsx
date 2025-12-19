@@ -8,8 +8,9 @@ import { ClipLoader } from "react-spinners";
 import { Modal, Button } from "antd"; // ✅ Ant Design components
 import gsap from "gsap";
 import { sendOtp, verifyOtp } from "../../redux/slices/authSlice";
+import { toast } from "react-toastify";
 
-const OtpVerify = () => {
+const SubOtpVerify = () => {
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [resendCount, setResendCount] = useState(0);
@@ -62,13 +63,14 @@ const handleVerify = async (e) => {
     }
 
     if (data.roles && data.roles.includes("ADMIN")) {
-      navigate("/dashboard");
+    //   navigate("/dashboard");
+    toast.error("You are not authorized to access this dashboard. Only Sub-Admins can log in.");
     } else if (data.roles && data.roles.includes("SUBADMIN")) {
-      // localStorage.setItem("subAdminId", data.userId);
-      // console.log("logindata",data);
+      localStorage.setItem("subAdminId", data.userId);
+      console.log("logindata",data);
       
-      // navigate("/subadmins"); // agar alag dashboard hai
-      toast.error("You are not authorized to access this dashboard. Only Admins can log in.");
+      navigate("/subadmins"); // agar alag dashboard hai
+
     } else {
       setIsModalVisible(true); // unauthorized
     }
@@ -206,4 +208,4 @@ const handleVerify = async (e) => {
   );
 };
 
-export default OtpVerify;
+export default SubOtpVerify;

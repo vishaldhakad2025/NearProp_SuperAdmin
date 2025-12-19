@@ -434,7 +434,7 @@ const FranchiseeWithdrawal = () => {
               onChange={(e) => handleSearch(e.target.value)}
               className="rounded-lg w-full sm:w-1/2"
             />
-            {/* <Select
+            <Select
               placeholder="Filter by Status"
               value={statusFilter}
               onChange={handleStatusFilter}
@@ -444,7 +444,7 @@ const FranchiseeWithdrawal = () => {
               <Option value="PENDING">Pending</Option>
               <Option value="APPROVED">Approved</Option>
               <Option value="REJECTED">Rejected</Option>
-            </Select> */}
+            </Select>
           </div>
           <Tabs
             activeKey={statusFilter}

@@ -69,9 +69,9 @@ const ReelDetail = ({ selectedReel, setSelectedReel, navigate }) => {
           <span>
             <ShareAltOutlined /> {selectedReel.shareCount} Shares
           </span>
-          {/* <span>
+          <span>
             <SaveOutlined /> {selectedReel.saveCount} Saves
-          </span> */}
+          </span>
         </div>
 
         <Divider />

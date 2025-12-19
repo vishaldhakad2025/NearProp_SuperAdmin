@@ -47,15 +47,14 @@ const FranchiseeManagement = () => {
             </Card>
           </Col>
 
-          <Col xs={24} sm={12} md={12}>
+          <Col xs={24} sm={12} md={6}>
             <Card
               title="Approved"
               bordered={false}
               className="bg-green-100 rounded-xl shadow-md text-center"
             >
               <p className="text-lg font-semibold text-gray-800">
-                
-                {statistics.APPROVED || 0}
+                {totalElements || 0}
               </p>
             </Card>
           </Col>
@@ -72,7 +71,17 @@ const FranchiseeManagement = () => {
             </Card>
           </Col>
 
-          
+          <Col xs={24} sm={12} md={6}>
+            <Card
+              title="Terminated"
+              bordered={false}
+              className="bg-gray-200 rounded-xl shadow-md text-center"
+            >
+              <p className="text-lg font-semibold text-gray-800">
+                {statistics.TERMINATED || 0}
+              </p>
+            </Card>
+          </Col>
         </Row>
 
 
