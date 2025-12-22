@@ -27,7 +27,7 @@ import {
   PhoneOutlined,
   ShareAltOutlined,
   FacebookFilled,
-  InstagramOutlined,
+  // InstagramOutlined,
   WhatsAppOutlined,
   TwitterOutlined,
   DollarCircleOutlined,
@@ -134,9 +134,9 @@ const PropertyDetails = () => {
                     <TwitterOutlined className="text-sky-500 text-2xl hover:scale-110 transition" />
                   </a>
                 </Tooltip>
-                <Tooltip title="Share on Instagram">
+                {/* <Tooltip title="Share on Instagram">
                   <InstagramOutlined className="text-pink-500 text-2xl" />
-                </Tooltip>
+                </Tooltip> */}
               </Space>
             </div>
 
@@ -191,11 +191,11 @@ const PropertyDetails = () => {
                   <Text className="font-bold text-lg">{prop.bathrooms}</Text>
                   <Paragraph className="text-gray-500">Bathrooms</Paragraph>
                 </div>
-                <div className="flex flex-col items-center shadow-md bg-[whitesomke] rounded-e-lg">
+                {/* <div className="flex flex-col items-center shadow-md bg-[whitesomke] rounded-e-lg">
                   <CarOutlined className="text-cyan-600 text-xl mb-1" />
                   <Text className="font-bold text-lg">{prop.garages}</Text>
                   <Paragraph className="text-gray-500">Garage</Paragraph>
-                </div>
+                </div> */}
                 <div className="flex flex-col items-center shadow-md bg-[whitesomke] rounded-e-lg">
                   <BorderOutlined className="text-cyan-600 text-xl mb-1" />
                   <Text className="font-bold text-lg">
@@ -431,7 +431,7 @@ const PropertyDetails = () => {
                   <div className="flex-1">
                     <Text strong className="text-lg block">{prop.owner.name}</Text>
                     <Paragraph className="text-gray-600 mb-1">
-                      <PhoneOutlined className="mr-2 text-cyan-600" />
+                      <PhoneOutlined className="mr-2 text-cyan-600 rotate-180" />
                       {prop.owner.phone || "N/A"}
                     </Paragraph>
                     <Paragraph className="text-gray-600">
@@ -443,7 +443,7 @@ const PropertyDetails = () => {
                     <Button
                       type="primary"
                       className="bg-cyan-600"
-                      icon={<PhoneOutlined className="rotate-150" />}
+                      icon={<PhoneOutlined className="rotate-180" />}
                       href={`tel:${prop.owner.phone}`}
                     >
                       Call
@@ -530,7 +530,22 @@ const PropertyDetails = () => {
             </div>
           )}
           {/* Reviews Section */}
-          <Card title="Reviews" className="shadow rounded-xl">
+          
+          <Divider />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PropertyDetails;
+
+
+
+
+
+
+{/* <Card title="Reviews" className="shadow rounded-xl"> */}
             {/* {reviewsLoading ? (
               <Spin />
             ) : reviews.length === 0 ? (
@@ -564,6 +579,8 @@ const PropertyDetails = () => {
             )} */}
 
             {/* Review Form */}
+
+            
             {/* <form onSubmit={handleReviewSubmit} className="mt-4 space-y-3">
               <div>
                 <label className="block mb-1">Rating</label>
@@ -592,12 +609,4 @@ const PropertyDetails = () => {
                 Submit Review
               </Button>
             </form> */}
-          </Card>
-          <Divider />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default PropertyDetails;
+          // </Card>

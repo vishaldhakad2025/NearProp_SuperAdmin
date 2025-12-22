@@ -94,9 +94,13 @@ const CouponForm = () => {
     };
 
     if (isEdit) {
-      dispatch(updateCoupon({ id, data: payload })).then(() => navigate("/dashboard/coupons"));
+      dispatch(updateCoupon({ id, data: payload })).then(() =>
+        navigate("/dashboard/coupons")
+      );
     } else {
-      dispatch(createCoupon(payload)).then(() => navigate("/dashboard/coupons"));
+      dispatch(createCoupon(payload)).then(() =>
+        navigate("/dashboard/coupons")
+      );
     }
   };
   const discountType = Form.useWatch("discountType", form);
@@ -172,7 +176,12 @@ const CouponForm = () => {
                 label="Discount Amount"
                 rules={[{ required: true }]}
               >
-                <InputNumber className="w-full" min={1} placeholder="₹ amount" />
+                <InputNumber
+                  className="w-full"
+                  min={1}
+                  placeholder="₹ amount"
+                  type="number"
+                />
               </Form.Item>
             </Col>
           ) : (
@@ -188,6 +197,7 @@ const CouponForm = () => {
                     min={1}
                     max={100}
                     placeholder="% off"
+                    type="number"
                   />
                 </Form.Item>
               </Col>
@@ -197,7 +207,12 @@ const CouponForm = () => {
                   label="Max Discount ₹"
                   rules={[{ required: true }]}
                 >
-                  <InputNumber className="w-full" min={1} placeholder="₹ max discount" />
+                  <InputNumber
+                    className="w-full"
+                    min={1}
+                    placeholder="₹ max discount"
+                    type="number"
+                  />
                 </Form.Item>
               </Col>
             </>
@@ -224,7 +239,12 @@ const CouponForm = () => {
               label="Max Uses"
               rules={[{ required: true }]}
             >
-              <InputNumber className="w-full" min={1} placeholder="e.g., 100" />
+              <InputNumber
+                className="w-full"
+                min={1}
+                placeholder="e.g., 100"
+                type="number"
+              />
             </Form.Item>
           </Col>
 

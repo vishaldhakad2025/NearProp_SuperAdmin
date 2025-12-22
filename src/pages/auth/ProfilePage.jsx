@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Card, Avatar, Descriptions, Button, Modal, Form, Input, Tag, Spin } from "antd";
+import {
+  Card,
+  Avatar,
+  Descriptions,
+  Button,
+  Modal,
+  Form,
+  Input,
+  Tag,
+  Spin,
+} from "antd";
 import { EditOutlined, UserOutlined } from "@ant-design/icons";
 import { fetchUserProfile } from "../../redux/slices/authSlice";
 import { BiLeftArrowAlt } from "react-icons/bi";
@@ -12,7 +22,7 @@ const ProfilePage = () => {
   const { user, loading } = useSelector((state) => state.auth);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [form] = Form.useForm();
- 
+
   useEffect(() => {
     dispatch(fetchUserProfile());
   }, [dispatch]);
@@ -38,14 +48,14 @@ const ProfilePage = () => {
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto">
-        <div className="flex justify-end mb-4">
-                <Button
-                  icon={<BiLeftArrowAlt />}
-                  onClick={() => navigate(-1)} // Goes back one step in history
-                >
-                  Back
-                </Button>
-              </div>
+      <div className="flex justify-end mb-4">
+        <Button
+          icon={<BiLeftArrowAlt />}
+          onClick={() => navigate(-1)} // Goes back one step in history
+        >
+          Back
+        </Button>
+      </div>
       <Card
         className="shadow-md rounded-lg"
         title={<span className="text-lg font-semibold">User Profile</span>}
@@ -55,19 +65,32 @@ const ProfilePage = () => {
         //   </Button>
         // }
       >
-        <div className="flex flex-col md:flex-row gap-6 items-start">
+        <div className="flex flex-col md:flex-row gap-6 items-start ">
+          
           <Avatar
             src={user.profileImageUrl}
             size={120}
             icon={<UserOutlined />}
             className="border shadow"
+            style={{ backgroundColor: "#000000" }}
           />
-          <Descriptions column={1} bordered labelStyle={{ fontWeight: 600 }} className="w-full">
+          <Descriptions
+            column={1}
+            bordered
+            labelStyle={{ fontWeight: 600 }}
+            className="w-full"
+          >
             <Descriptions.Item label="Full Name">{user.name}</Descriptions.Item>
             <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
-            <Descriptions.Item label="Mobile Number">{user.mobileNumber}</Descriptions.Item>
-            <Descriptions.Item label="Username">{user.username}</Descriptions.Item>
-            <Descriptions.Item label="Phone Number">{user.phoneNumber}</Descriptions.Item>
+            <Descriptions.Item label="Mobile Number">
+              {user.mobileNumber}
+            </Descriptions.Item>
+            <Descriptions.Item label="Username">
+              {user.username}
+            </Descriptions.Item>
+            <Descriptions.Item label="Phone Number">
+              {user.phoneNumber}
+            </Descriptions.Item>
             <Descriptions.Item label="Roles">
               {user.roles?.map((role, i) => (
                 <Tag key={i} color="blue">

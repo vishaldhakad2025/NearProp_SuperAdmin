@@ -426,7 +426,7 @@ const FranchiseeWithdrawal = () => {
           </Button>
         </header>
         <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          {/* <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <Input
               placeholder="Search by Franchisee Name or ID"
               prefix={<SearchOutlined />}
@@ -445,7 +445,7 @@ const FranchiseeWithdrawal = () => {
               <Option value="APPROVED">Approved</Option>
               <Option value="REJECTED">Rejected</Option>
             </Select>
-          </div>
+          </div> */}
           <Tabs
             activeKey={statusFilter}
             onChange={handleStatusFilter}

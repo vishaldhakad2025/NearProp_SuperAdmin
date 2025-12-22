@@ -54,7 +54,7 @@ const FranchiseeManagement = () => {
               className="bg-green-100 rounded-xl shadow-md text-center"
             >
               <p className="text-lg font-semibold text-gray-800">
-                {totalElements || 0}
+                {statistics.APPROVED || 0}
               </p>
             </Card>
           </Col>

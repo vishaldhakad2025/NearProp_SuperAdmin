@@ -1,7 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify'; // Assuming you use react-toastify
+import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify"; // Assuming you use react-toastify
 
-const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts = [] }) => {
+const AdvertisementForm = ({
+  initialValues = {},
+  onSubmit,
+  onCancel,
+  districts = [],
+}) => {
   const [form, setForm] = useState(initialValues || {});
 
   useEffect(() => {
@@ -11,7 +16,7 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
 
-    if (name === 'districtSelect') {
+    if (name === "districtSelect") {
       const selected = districts.find((d) => d.id.toString() === value);
       if (selected) {
         setForm((prev) => ({
@@ -23,7 +28,7 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
           radiusKm: 50,
         }));
       }
-    } else if (type === 'file') {
+    } else if (type === "file") {
       const file = files?.[0];
       if (file) {
         setForm((prev) => ({ ...prev, [name]: file }));
@@ -39,21 +44,21 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
     const formData = new FormData();
 
     Object.entries(form).forEach(([key, val]) => {
-      if (val !== undefined && val !== null && val !== '') {
+      if (val !== undefined && val !== null && val !== "") {
         // ✅ Fix 1: Handle banner image (file or existing URL)
-        if (key === 'bannerImage' && val instanceof File) {
-          formData.append('bannerImage', val);
-        } else if (key === 'bannerImageUrl') {
-          formData.append('bannerImageUrl', val);
+        if (key === "bannerImage" && val instanceof File) {
+          formData.append("bannerImage", val);
+        } else if (key === "bannerImageUrl") {
+          formData.append("bannerImageUrl", val);
         }
 
         // ✅ Fix 2: Handle video file
-        else if (key === 'videoFile' && val instanceof File) {
-          formData.append('videoFile', val);
+        else if (key === "videoFile" && val instanceof File) {
+          formData.append("videoFile", val);
         }
 
         // ✅ Fix 3: Handle datetime (backend expects ISO format)
-        else if (key === 'validFrom' || key === 'validUntil') {
+        else if (key === "validFrom" || key === "validUntil") {
           formData.append(key, new Date(val).toISOString().slice(0, 16));
         }
 
@@ -65,19 +70,20 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
     });
 
     // ✅ Fix 4: Ensure required fields (like curl)
-    if (!formData.get('radiusKm')) formData.append('radiusKm', '10.0');
-    if (!formData.get('targetLocation') && form.districtName) {
-      formData.append('targetLocation', form.districtName + ', Madhya Pradesh');
+    if (!formData.get("radiusKm")) formData.append("radiusKm", "10.0");
+    if (!formData.get("targetLocation") && form.districtName) {
+      formData.append("targetLocation", form.districtName + ", Madhya Pradesh");
     }
-    if (!formData.get('latitude')) formData.append('latitude', '22.7196');
-    if (!formData.get('longitude')) formData.append('longitude', '75.8577');
+    if (!formData.get("latitude")) formData.append("latitude", "22.7196");
+    if (!formData.get("longitude")) formData.append("longitude", "75.8577");
 
     onSubmit(formData);
   };
 
-
   const minFrom = new Date().toISOString().slice(0, 16);
-  const minUntil = form.validFrom ? new Date(form.validFrom).toISOString().slice(0, 16) : minFrom;
+  const minUntil = form.validFrom
+    ? new Date(form.validFrom).toISOString().slice(0, 16)
+    : minFrom;
 
   return (
     <form
@@ -88,7 +94,7 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
         <label className="block font-medium">Title *</label>
         <input
           name="title"
-          value={form.title || ''}
+          value={form.title || ""}
           onChange={handleChange}
           required
           maxLength={100}
@@ -100,7 +106,7 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
         <label className="block font-medium">Description *</label>
         <textarea
           name="description"
-          value={form.description || ''}
+          value={form.description || ""}
           onChange={handleChange}
           required
           maxLength={1000}
@@ -109,8 +115,10 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
         />
       </div>
 
-       <div>
-        <label className="block font-medium text-gray-700 mb-2">Banner Image</label>
+      <div>
+        <label className="block font-medium text-gray-700 mb-2">
+          Banner Image
+        </label>
         {initialValues.bannerImageUrl && (
           <img
             src={initialValues.bannerImageUrl}
@@ -131,7 +139,9 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
             hover:file:bg-blue-100
             cursor-pointer"
         />
-        <p className="text-xs text-gray-400 mt-1">Max size: 5 MB | Allowed formats: jpg, png, gif</p>
+        <p className="text-xs text-gray-400 mt-1">
+          Max size: 5 MB | Allowed formats: jpg, png, gif
+        </p>
       </div>
 
       {/* Video File */}
@@ -165,7 +175,7 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
         <input
           name="websiteUrl"
           type="url"
-          value={form.websiteUrl || ''}
+          value={form.websiteUrl || ""}
           onChange={handleChange}
           className="w-full border rounded px-3 py-2"
         />
@@ -175,11 +185,12 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
         <label className="block font-medium">WhatsApp Number</label>
         <input
           name="whatsappNumber"
-          type="tel"
-          value={form.whatsappNumber || ''}
+          type="number"
+          value={form.whatsappNumber || ""}
           onChange={handleChange}
           pattern="^\+?[0-9]{10,15}$"
           className="w-full border rounded px-3 py-2"
+          maxLength={10}
         />
       </div>
 
@@ -188,7 +199,7 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
         <input
           name="phoneNumber"
           type="tel"
-          value={form.phoneNumber || ''}
+          value={form.phoneNumber || ""}
           onChange={handleChange}
           pattern="^\+?[0-9]{10,15}$"
           className="w-full border rounded px-3 py-2"
@@ -200,20 +211,26 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
         <input
           name="emailAddress"
           type="email"
-          value={form.emailAddress || ''}
+          value={form.emailAddress || ""}
           onChange={handleChange}
           className="w-full border rounded px-3 py-2"
         />
       </div>
 
-      {['instagramUrl', 'facebookUrl', 'youtubeUrl', 'linkedinUrl', 'twitterUrl'].map((field) => (
+      {[
+        "instagramUrl",
+        "facebookUrl",
+        "youtubeUrl",
+        "linkedinUrl",
+        "twitterUrl",
+      ].map((field) => (
         <div key={field}>
           <label className="block font-medium capitalize">
-            {field.replace('Url', '').replace(/([A-Z])/g, ' $1')}
+            {field.replace("Url", "").replace(/([A-Z])/g, " $1")}
           </label>
           <input
             name={field}
-            value={form[field] || ''}
+            value={form[field] || ""}
             onChange={handleChange}
             type="url"
             className="w-full border rounded px-3 py-2"
@@ -225,7 +242,7 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
         <label className="block font-medium">Additional Info</label>
         <textarea
           name="additionalInfo"
-          value={form.additionalInfo || ''}
+          value={form.additionalInfo || ""}
           onChange={handleChange}
           rows={2}
           maxLength={1000}
@@ -237,7 +254,7 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
         <label className="block font-medium">Target District *</label>
         <select
           name="districtSelect"
-          value={form.districtId || ''}
+          value={form.districtId || ""}
           onChange={handleChange}
           required
           className="w-full border rounded px-3 py-2"
@@ -257,7 +274,7 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
           <input
             name="radiusKm"
             type="number"
-            value={form.radiusKm || ''}
+            value={form.radiusKm || ""}
             onChange={handleChange}
             min={0}
             required
@@ -271,7 +288,7 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
         <input
           type="datetime-local"
           name="validFrom"
-          value={form.validFrom || ''}
+          value={form.validFrom || ""}
           onChange={handleChange}
           required
           min={minFrom}
@@ -284,7 +301,7 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
         <input
           type="datetime-local"
           name="validUntil"
-          value={form.validUntil || ''}
+          value={form.validUntil || ""}
           onChange={handleChange}
           required
           min={minUntil}
@@ -304,7 +321,7 @@ const AdvertisementForm = ({ initialValues = {}, onSubmit, onCancel, districts =
           type="submit"
           className="px-4 py-2 bg-blue-600 !text-white rounded hover:bg-blue-700"
         >
-          {initialValues?.id ? 'Update Advertisement' : 'Create Advertisement'}
+          {initialValues?.id ? "Update Advertisement" : "Create Advertisement"}
         </button>
       </div>
     </form>

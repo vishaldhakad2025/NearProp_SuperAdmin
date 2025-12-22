@@ -886,7 +886,7 @@ const SubAdminManagement = () => {
                 label="Mobile Number"
                 rules={[{ required: true, message: '10-digit number required' }]}
               >
-                <Input prefix={<PhoneOutlined style={{ color: '#aaa' }} />} placeholder="98xxxxxxxx" />
+                <Input prefix={<PhoneOutlined style={{ color: '#aaa' }} />} placeholder="98xxxxxxxx" type='number' maxLength={10} />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -1056,7 +1056,8 @@ const SubAdminManagement = () => {
                   <div><Text strong>Name:</Text> <Text>{viewModal.subAdmin.name || '—'}</Text></div>
                   <div><Text strong>Email:</Text> <Text>{viewModal.subAdmin.email || '—'}</Text></div>
                   <div><Text strong>Mobile:</Text> <Text>{viewModal.subAdmin.mobileNumber || viewModal.subAdmin.phoneNumber || '—'}</Text></div>
-                  <div><Text strong>District:</Text> <Text>{viewModal.subAdmin.district || '—'}</Text></div>
+
+                  {/* <div><Text strong>District:</Text> <Text>{viewModal.subAdmin.district || '—'}</Text></div> */}
                 </Space>
               </Card>
             </Col>

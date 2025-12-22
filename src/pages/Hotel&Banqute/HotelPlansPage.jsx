@@ -143,7 +143,7 @@ const HotelPlansPage = () => {
             label="Price (₹)"
             rules={[{ required: true, message: "Price required" }]}
           >
-            <InputNumber className="w-full" min={0} />
+            <InputNumber className="w-full" min={0} type="number" />
           </Form.Item>
 
           {/* roomLimit only if hotel */}
