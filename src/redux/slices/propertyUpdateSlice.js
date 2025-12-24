@@ -23,7 +23,7 @@ export const reviewPropertyUpdate = createAsyncThunk(
   async (payload, { rejectWithValue }) => {
     try {
       const res = await axiosInstance.post(`/api/property-updates/admin/review`, payload);
-      toastSuccess("Update review submitted");
+      // toastSuccess("Update review submitted");
       return payload;
     } catch (err) {
         console.error(err)
