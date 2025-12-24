@@ -151,14 +151,14 @@
 //     const result = await dispatch(createAdvertisement(formData));
 
 //     if (createAdvertisement.fulfilled.match(result)) {
-//       message.success("Advertisement created successfully!");
+//       toast.success("Advertisement created successfully!");
 //       form.resetFields();
 //       setBannerFileList([]);
 //       // setVideoFileList([]);
 //       setCreateOpen(false);
 //       dispatch(fetchAllAdvertisements());
 //     } else {
-//       message.error(
+//       toast.error(
 //         result.payload?.message || "Failed to create advertisement"
 //       );
 //     }
@@ -547,6 +547,7 @@ import {
   UploadOutlined,
 } from "@ant-design/icons";
 import moment from "moment";
+import { toast } from "react-toastify";
 
 const { Text, Title } = Typography;
 
@@ -606,7 +607,7 @@ const AdvertisementManagement = () => {
   const handleCreate = async (values) => {
     // Validate banner image
     if (bannerFileList.length === 0) {
-      message.error("Please upload a banner image");
+      toast.error("Please upload a banner image");
       return;
     }
 
@@ -671,7 +672,7 @@ const AdvertisementManagement = () => {
     const result = await dispatch(createAdvertisement(formData));
 
     if (createAdvertisement.fulfilled.match(result)) {
-      message.success("Advertisement created successfully!");
+      toast.success("Advertisement created successfully!");
       form.resetFields();
       setBannerFileList([]);
       // setVideoFileList([]);
@@ -680,29 +681,29 @@ const AdvertisementManagement = () => {
     } else {
       // Handle error response
       const errorData = result.payload || result.error;
-      
+
       // Check if validation error
-      if (errorData?.error?.message === "Validation failed" || 
-          errorData?.message === "Validation failed") {
-        
+      if (errorData?.error?.message === "Validation failed" ||
+        errorData?.message === "Validation failed") {
+
         // Show main validation error toast
-        message.error("Validation failed! Please check all fields.");
-        
+        toast.error("Validation failed! Please check all fields.");
+
         // If there are specific validation errors, show them
         if (errorData?.error?.errors) {
           const errors = errorData.error.errors;
           Object.keys(errors).forEach((field) => {
-            message.error(`${field}: ${errors[field]}`);
+            toast.error(`${field}: ${errors[field]}`);
           });
         } else if (errorData?.errors) {
           const errors = errorData.errors;
           Object.keys(errors).forEach((field) => {
-            message.error(`${field}: ${errors[field]}`);
+            toast.error(`${field}: ${errors[field]}`);
           });
         }
       } else {
         // Show general error message
-        message.error(
+        toast.error(
           errorData?.message || errorData?.error?.message || "Failed to create advertisement"
         );
       }
@@ -762,7 +763,11 @@ const AdvertisementManagement = () => {
           />
           <Popconfirm
             title="Delete?"
-            onConfirm={() => dispatch(deleteAdvertisement(rec.id))}
+            onConfirm={() => {
+              toast.info("Deleting advertisement...");
+              dispatch(deleteAdvertisement(rec.id));
+              dispatch(fetchAllAdvertisements());
+            }}
           >
             <Button danger size="small" icon={<DeleteOutlined />} />
           </Popconfirm>

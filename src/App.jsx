@@ -68,7 +68,7 @@ const App = () => {
     <Routes>
 
       {/* Public Routes */}
-      <Route path="/" element={<Login />} />
+      <Route path="/" element={<SubAdminLogin />} />
       {/* <Route path="/" element={<Login />} /> */}
       <Route path="/verify-otp" element={<OtpVerify />} />
       <Route path="/sub-admin" element={<SubAdminLogin />} />

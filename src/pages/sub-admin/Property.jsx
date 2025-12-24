@@ -13,7 +13,7 @@ import {
     Alert,
 } from "antd";
 import { Avatar } from "antd";
-import { UserOutlined, ReloadOutlined, CheckOutlined, CloseOutlined,ArrowLeftOutlined } from "@ant-design/icons";
+import { UserOutlined, ReloadOutlined, CheckOutlined, CloseOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";   // ← यह लाइन जोड़ो
 import axios from "axios";
@@ -30,7 +30,7 @@ const PropertyListss = () => {  // Fixed component name from PropertyListss to P
     const [pageSize, setPageSize] = useState(10);
     const [totalElements, setTotalElements] = useState(0);
     const [token, setToken] = useState(null);  // State for token to ensure it's fetched properly
-const navigate = useNavigate();   // ← यह लाइन जोड़ो (सबसे ऊपर)
+    const navigate = useNavigate();   // ← यह लाइन जोड़ो (सबसे ऊपर)
     // Fetch token from localStorage once on mount
     useEffect(() => {
         const storedToken = localStorage.getItem("subAdminToken");
@@ -203,31 +203,31 @@ const navigate = useNavigate();   // ← यह लाइन जोड़ो (�
 
     return (
         <div style={{ padding: 32, background: '#f0f2f5', minHeight: '100vh' }}>
-           <div style={{ marginBottom: 24 }}>
-  <Button
-    type="primary"
-    shape="circle"
-    size="large"
-    icon={<ArrowLeftOutlined style={{ fontSize: 18 }} />}
-    onClick={() => navigate(-1)}  // पिछले पेज पर वापस जाएगा
-    style={{
-      width: 48,
-      height: 48,
-      background: 'linear-gradient(135deg, #1890ff, #096dd9)',
-      border: 'none',
-      boxShadow: '0 6px 16px rgba(24, 144, 255, 0.35)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}
-    className="back-button-hover"
-  />
-  
-  {/* Optional: Text के साथ चाहो तो ये भी use कर सकते हो */}
-  {/* <span style={{ marginLeft: 12, fontSize: 16, color: '#1890ff', fontWeight: 500 }}>
+            <div style={{ marginBottom: 24 }}>
+                <Button
+                    type="primary"
+                    shape="circle"
+                    size="large"
+                    icon={<ArrowLeftOutlined style={{ fontSize: 18 }} />}
+                    onClick={() => navigate("/subadmins")}  // ← यह लाइन जोड़ो
+                    style={{
+                        width: 48,
+                        height: 48,
+                        background: 'linear-gradient(135deg, #1890ff, #096dd9)',
+                        border: 'none',
+                        boxShadow: '0 6px 16px rgba(24, 144, 255, 0.35)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                    className="back-button-hover"
+                />
+
+                {/* Optional: Text के साथ चाहो तो ये भी use कर सकते हो */}
+                {/* <span style={{ marginLeft: 12, fontSize: 16, color: '#1890ff', fontWeight: 500 }}>
       Back
     </span> */}
-</div>
+            </div>
             <Card
                 headStyle={{ borderBottom: 'none', padding: '24px 32px' }}
                 bodyStyle={{ padding: '32px' }}

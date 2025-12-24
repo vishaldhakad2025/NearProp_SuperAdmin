@@ -43,43 +43,42 @@ const SubOtpVerify = () => {
   }, [timer]);
 
   // Verify OTP
-const handleVerify = async (e) => {
-  e.preventDefault();
-  if (!/^\d{6}$/.test(otp)) {
-    setError("Enter a valid 6-digit OTP");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const data = await dispatch(verifyOtp({ mobileNumber, otp })).unwrap();
-
-    // Save admin token
-    localStorage.setItem("token", data.token);
-
-    // ✅ Save sub-admin token if role includes SUBADMIN
-    if (data.roles && data.roles.includes("SUBADMIN")) {
-      localStorage.setItem("subAdminToken", data.token);
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    if (!/^\d{6}$/.test(otp)) {
+      setError("Enter a valid 6-digit OTP");
+      return;
     }
 
-    if (data.roles && data.roles.includes("ADMIN")) {
-    //   navigate("/dashboard");
-    toast.error("You are not authorized to access this dashboard. Only Sub-Admins can log in.");
-    } else if (data.roles && data.roles.includes("SUBADMIN")) {
-      localStorage.setItem("subAdminId", data.userId);
-      console.log("logindata",data);
-      
-      navigate("/subadmins"); // agar alag dashboard hai
+    setLoading(true);
+    try {
+      const data = await dispatch(verifyOtp({ mobileNumber, otp })).unwrap();
 
-    } else {
-      setIsModalVisible(true); // unauthorized
+      // Save admin token
+      localStorage.setItem("token", data.token);
+
+      const roles = data.roles || [];
+
+      if (roles.includes("SUBADMIN")) {
+        // ✅ Authorized
+        localStorage.setItem("subAdminToken", data.token);
+        localStorage.setItem("subAdminId", data.userId);
+
+        console.log("SubAdmin login data:", data);
+
+        navigate("/subadmins"); // Sub-admin dashboard
+      } else {
+        // ❌ Not authorized (USER / ADMIN / anything else)
+        toast.error("You are not authorized to access the Sub-Admin dashboard.");
+        setIsModalVisible(true);
+      }
+
+    } catch (err) {
+      setError("Invalid OTP. Try again.");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setError("Invalid OTP. Try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
 
   // Resend OTP

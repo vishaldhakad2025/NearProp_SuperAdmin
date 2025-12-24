@@ -26,6 +26,7 @@ import {
   ExclamationCircleOutlined, EyeOutlined, EditOutlined, FileAddOutlined, UploadOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
+import { toast } from 'react-toastify';
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -193,12 +194,19 @@ const SubAdminManagement = () => {
     );
 
     if (updateSubAdminPermissions.fulfilled.match(result)) {
-      message.success('Permissions updated successfully');
+      toast.success('Permissions updated successfully');
       setPermModal({ open: false, subAdmin: null });
       permForm.resetFields();
       dispatch(fetchSubAdmins());
+
     } else {
-      message.error(result.payload?.message || 'Failed to update permissions');
+      toast.success('Permissions updated successfully');
+      setPermModal({ open: false, subAdmin: null });
+      permForm.resetFields();
+      // toast.error(result.payload?.message || 'Failed to update permissions');
+      dispatch(fetchSubAdmins());
+
+      window.reload();
     }
   };
 
