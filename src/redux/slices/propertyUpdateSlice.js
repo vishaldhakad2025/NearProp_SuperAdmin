@@ -27,7 +27,6 @@ export const reviewPropertyUpdate = createAsyncThunk(
       return payload;
     } catch (err) {
         console.error(err)
-      toastError("Review failed");
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }

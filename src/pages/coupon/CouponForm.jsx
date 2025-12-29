@@ -21,6 +21,7 @@ import {
 } from "../../redux/slices/couponSlice";
 
 const { RangePicker } = DatePicker;
+const { Option } = Select; // ✅ Add this import
 
 const CouponForm = () => {
   const [form] = Form.useForm();
@@ -52,7 +53,7 @@ const CouponForm = () => {
         validUntil,
         maxUses,
         active,
-        subscriptionType,
+        subscriptionType, // ← assuming your backend uses this field name
       } = singleCoupon;
 
       form.setFieldsValue({
@@ -64,7 +65,7 @@ const CouponForm = () => {
         maxDiscount,
         maxUses,
         active,
-        subscriptionType,
+        type: subscriptionType, // ← now an array for multiple types
         validity: [dayjs(validFrom), dayjs(validUntil)],
       });
     }
@@ -77,6 +78,7 @@ const CouponForm = () => {
       discountAmount,
       discountPercentage,
       maxDiscount,
+      type, // ← this is now an array
       ...rest
     } = values;
 
@@ -84,6 +86,7 @@ const CouponForm = () => {
 
     const payload = {
       ...rest,
+      type, // ← send array of types
       validFrom,
       validUntil,
       discountType,
@@ -103,6 +106,7 @@ const CouponForm = () => {
       );
     }
   };
+
   const discountType = Form.useWatch("discountType", form);
 
   return (
@@ -111,6 +115,7 @@ const CouponForm = () => {
         {isEdit ? "Edit Coupon" : "Create Coupon"}
       </h2>
       <Divider />
+
       <Form
         form={form}
         layout="vertical"
@@ -124,25 +129,35 @@ const CouponForm = () => {
               label="Coupon Code"
               rules={[{ required: true, message: "Coupon code is required" }]}
             >
-              <Input placeholder="Enter unique code (e.g., WELCOME10)" />
+              <Input placeholder="e.g., WELCOME2025" />
             </Form.Item>
           </Col>
 
           <Col xs={24} md={12}>
-            <Form.Item name="type" label="Type" rules={[{ required: true }]}>
-              <Select placeholder="Select Plan Type">
+            <Form.Item
+              name="type"
+              label="Applicable Plan Types"
+              rules={[{ required: true, message: "Select at least one plan type" }]}
+            >
+              <Select
+                mode="multiple" // ✅ Enable multiple selection
+                placeholder="Select one or more plan types"
+                allowClear
+                style={{ width: "100%" }}
+              >
                 <Option value="SELLER">Seller</Option>
                 <Option value="ADVISOR">Advisor</Option>
                 <Option value="DEVELOPER">Developer</Option>
-                <Option value="FRANCHISEE">Franchisee</Option>
-                <Option value="PROPERTY">Property</Option>
+                {/* <Option value="FRANCHISEE">Franchisee</Option> */}
+                {/* Uncomment if needed later */}
+                {/* <Option value="PROPERTY">Property</Option> */}
               </Select>
             </Form.Item>
           </Col>
 
           <Col span={24}>
-            <Form.Item name="description" label="Description">
-              <Input.TextArea rows={2} placeholder="Optional description..." />
+            <Form.Item name="description" label="Description (Optional)">
+              <Input.TextArea rows={3} placeholder="Describe what this coupon offers..." />
             </Form.Item>
           </Col>
 
@@ -154,10 +169,10 @@ const CouponForm = () => {
             >
               <Select
                 options={[
-                  { label: "Percentage", value: "PERCENTAGE" },
-                  { label: "Fixed Amount", value: "FIXED_AMOUNT" },
+                  { label: "Percentage (%)", value: "PERCENTAGE" },
+                  { label: "Fixed Amount (₹)", value: "FIXED_AMOUNT" },
                 ]}
-                placeholder="Select discount type"
+                placeholder="Choose discount type"
                 onChange={() => {
                   form.setFieldsValue({
                     discountAmount: undefined,
@@ -169,66 +184,66 @@ const CouponForm = () => {
             </Form.Item>
           </Col>
 
-          {form.getFieldValue("discountType") === "FIXED_AMOUNT" ? (
+          {discountType === "FIXED_AMOUNT" ? (
             <Col xs={24} md={12}>
               <Form.Item
                 name="discountAmount"
-                label="Discount Amount"
-                rules={[{ required: true }]}
+                label="Discount Amount (₹)"
+                rules={[{ required: true, message: "Enter discount amount" }]}
               >
                 <InputNumber
                   className="w-full"
                   min={1}
-                  placeholder="₹ amount"
-                  type="number"
+                  formatter={(value) => `₹ ${value}`}
+                  parser={(value) => value.replace("₹ ", "")}
                 />
               </Form.Item>
             </Col>
-          ) : (
+          ) : discountType === "PERCENTAGE" ? (
             <>
               <Col xs={24} md={6}>
                 <Form.Item
                   name="discountPercentage"
-                  label="Discount %"
-                  rules={[{ required: true }]}
+                  label="Discount Percentage"
+                  rules={[{ required: true, message: "Enter percentage" }]}
                 >
                   <InputNumber
                     className="w-full"
                     min={1}
                     max={100}
-                    placeholder="% off"
-                    type="number"
+                    formatter={(value) => `${value}%`}
+                    parser={(value) => value.replace("%", "")}
                   />
                 </Form.Item>
               </Col>
               <Col xs={24} md={6}>
                 <Form.Item
                   name="maxDiscount"
-                  label="Max Discount ₹"
-                  rules={[{ required: true }]}
+                  label="Max Discount Amount (₹)"
+                  // rules={[{ required: true, message: "Enter max discount" }]}
                 >
                   <InputNumber
                     className="w-full"
                     min={1}
-                    placeholder="₹ max discount"
-                    type="number"
+                    formatter={(value) => `₹ ${value}`}
+                    parser={(value) => value.replace("₹ ", "")}
                   />
                 </Form.Item>
               </Col>
             </>
-          )}
+          ) : null}
 
           <Col xs={24} md={12}>
             <Form.Item
               name="validity"
               label="Validity Period"
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "Select validity dates" }]}
             >
               <RangePicker
                 className="w-full"
-                showTime
+                showTime={{ format: "HH:mm" }}
                 format="YYYY-MM-DD HH:mm"
-                placeholder={["Start", "End"]}
+                placeholder={["Start Date & Time", "End Date & Time"]}
               />
             </Form.Item>
           </Col>
@@ -236,28 +251,31 @@ const CouponForm = () => {
           <Col xs={24} md={6}>
             <Form.Item
               name="maxUses"
-              label="Max Uses"
-              rules={[{ required: true }]}
+              label="Maximum Uses"
+              rules={[{ required: true, message: "Enter max uses" }]}
             >
-              <InputNumber
-                className="w-full"
-                min={1}
-                placeholder="e.g., 100"
-                type="number"
-              />
+              <InputNumber className="w-full" min={1} placeholder="e.g., 100" />
             </Form.Item>
           </Col>
 
           <Col xs={24} md={6} className="flex items-end">
-            <Form.Item name="active" label="Active" valuePropName="checked">
-              <Switch />
+            <Form.Item name="active" label="Status" valuePropName="checked">
+              <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
             </Form.Item>
           </Col>
         </Row>
 
-        <Form.Item className="mt-4">
-          <Button type="primary" htmlType="submit" loading={loading}>
+        <Divider />
+
+        <Form.Item>
+          <Button type="primary" htmlType="submit" loading={loading} size="large">
             {isEdit ? "Update Coupon" : "Create Coupon"}
+          </Button>
+          <Button
+            className="ml-3"
+            onClick={() => navigate("/dashboard/coupons")}
+          >
+            Cancel
           </Button>
         </Form.Item>
       </Form>

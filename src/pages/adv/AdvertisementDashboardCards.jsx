@@ -3,12 +3,12 @@ import { Card, Statistic } from 'antd';
 import { EyeOutlined, LikeOutlined, PhoneOutlined, WhatsAppOutlined, GlobalOutlined, ShareAltOutlined } from '@ant-design/icons';
 
 const AdvertisementDashboardCards = ({ ad, loading }) => {
-  const totalViews = ad.viewCount || 0;
-  const totalClicks = ad.clickCount || 0;
-  const totalWhatsapp = ad.whatsappClicks || 0;
-  const totalPhone = ad.phoneClicks || 0;
-  const totalWebsite = ad.websiteClicks || 0;
-  const totalSocial = ad.socialMediaClicks || 0;
+  const totalViews = ad.viewCount || "null";
+  const totalClicks = ad.clickCount || "null";
+  const totalWhatsapp = ad.whatsappClicks || "null";
+  const totalPhone = ad.phoneClicks || "null";
+  const totalWebsite = ad.websiteClicks || "null";
+  const totalSocial = ad.socialMediaClicks || "null";
 
   const cards = [
     {

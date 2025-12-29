@@ -46,6 +46,7 @@ const AdminAdvertisementPage = () => {
     try {
       await dispatch(createAdvertisement(formData)).unwrap();
       setIsOpenForm(false);
+      dispatch(clearSelectedAd()); // Clear any selected state after create
     } catch (err) {
       console.error('Advertisement creation failed:', err);
     }
@@ -62,9 +63,13 @@ const AdminAdvertisementPage = () => {
     }
   };
 
-
   const handleEditClick = (ad) => {
-    setEditingAd(ad);
+    // Convert validUntil string to Date object for proper form handling (e.g., Ant Design DatePicker)
+    const adWithDate = {
+      ...ad,
+      validUntil: ad.validUntil ? new Date(ad.validUntil) : null,
+    };
+    setEditingAd(adWithDate);
     setIsOpenForm(true);
   };
 
@@ -76,7 +81,11 @@ const AdminAdvertisementPage = () => {
 
   const filteredList = list
     .filter((ad) => ad.title.toLowerCase().includes(search.toLowerCase()))
-    .filter((ad) => (statusFilter === 'all' ? true : ad.status === statusFilter))
+    .filter((ad) => {
+      // Fix status filtering: map boolean 'active' to string status for consistency
+      const adStatus = ad.active ? 'PUBLISHED' : 'UNPUBLISHED';
+      return statusFilter === 'all' ? true : adStatus === statusFilter;
+    })
     .filter((ad) => (districtFilter ? ad.districtName === districtFilter : true));
 
   const columns = [
@@ -106,7 +115,7 @@ const AdminAdvertisementPage = () => {
       title: 'Valid Until',
       dataIndex: 'validUntil',
       key: 'validUntil',
-      render: (date) => new Date(date).toLocaleDateString(),
+      render: (date) => date ? new Date(date).toLocaleDateString() : 'No expiration',
     },
     {
       title: 'Status',
@@ -210,7 +219,7 @@ const AdminAdvertisementPage = () => {
                     pageSize,
                     total: filteredList.length,
                     onChange: (page) => setCurrentPage(page),
-                  }}
+                  }}  
                   rowKey="id"
                 />
               </>

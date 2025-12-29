@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { Avatar, Button, Input, Spin, message, Tooltip } from 'antd';
-import { SendOutlined, ArrowLeftOutlined, CheckOutlined, DoubleRightOutlined, CloseOutlined } from '@ant-design/icons';
+import { Avatar, Button, Input, Spin, message, Tooltip, Tag, Badge } from 'antd';
+import { SendOutlined, ArrowLeftOutlined, EyeOutlined, UserOutlined } from '@ant-design/icons';
 import { gsap } from 'gsap';
 import {
   setActiveRoom,
@@ -12,35 +12,27 @@ import {
   updateTypingStatus,
   updateMessageStatus,
   updateUnreadCount,
-  closeChatRoom,
 } from '../../redux/slices/chatSlice';
 import { fetchUserProfile } from '../../redux/slices/authSlice';
-import { initWebSocket, sendTypingEvent, closeWebSocket } from './websocketService';
+import { initWebSocket, closeWebSocket } from './websocketService';
 import './ChatPanel.css';
 import 'antd/dist/reset.css';
-import { Eye } from 'lucide-react';
-
+import { toast } from 'react-toastify';
 
 const BASE_URL = 'https://api.nearprop.com';
 const API_PREFIX = 'api';
 
 const ChatPanel = () => {
   const dispatch = useDispatch();
-  const { rooms, activeRoom, messages, isConnected, typingUsers } = useSelector((state) => state.chat);
+  const { rooms, activeRoom, messages, isConnected } = useSelector((state) => state.chat);
   const { user, loading: authLoading } = useSelector((state) => state.auth);
-  const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showChatWindow, setShowChatWindow] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const token = localStorage.getItem('token');
   const userId = user?.id;
-  const userName = user?.name || 'User';
-  const [typingTimeout, setTypingTimeout] = useState(null);
   const messagesEndRef = useRef(null);
   const chatWindowRef = useRef(null);
-  
-  const currentTypingUsers = typingUsers[activeRoom?.id] || [];
-  // console.log("--------------------------------------",typingUsers)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -69,18 +61,12 @@ const ChatPanel = () => {
 
   useEffect(() => {
     // GSAP animations
-    gsap.utils.toArray('.chat-item').forEach((item) => {
+    gsap.utils.toArray('.chat-item').forEach((item, i) => {
       gsap.fromTo(
         item,
         { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', stagger: 0.1 }
+        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', delay: i * 0.05 }
       );
-      item.addEventListener('mouseenter', () => {
-        gsap.to(item, { scale: 1.02, duration: 0.3, ease: 'power2.out' });
-      });
-      item.addEventListener('mouseleave', () => {
-        gsap.to(item, { scale: 1, duration: 0.3, ease: 'power2.out' });
-      });
     });
 
     gsap.utils.toArray('.message').forEach((msg) => {
@@ -116,13 +102,16 @@ const ChatPanel = () => {
         thumbnail: room.property?.thumbnail || '/assets/default-property.png',
         unreadCount: room.unreadCount || 0,
         status: room.status || 'OPEN',
+        participants: room.participants || [],
       })) || [];
 
       dispatch(setRooms(formattedRooms.filter((room) => room.status === 'OPEN')));
 
       const lastActiveRoomId = localStorage.getItem('lastActiveRoomId');
       if (lastActiveRoomId) {
-        const lastActiveRoom = formattedRooms.find((room) => room.id === parseInt(lastActiveRoomId) && room.status === 'OPEN');
+        const lastActiveRoom = formattedRooms.find(
+          (room) => room.id === parseInt(lastActiveRoomId) && room.status === 'OPEN'
+        );
         if (lastActiveRoom) {
           dispatch(setActiveRoom(lastActiveRoom));
           setShowChatWindow(true);
@@ -130,207 +119,60 @@ const ChatPanel = () => {
       }
     } catch (err) {
       message.error(`Failed to fetch chat rooms: ${err.message}`);
+      toast.error("Failed to Fetch chat panel")
     } finally {
       setIsLoading(false);
     }
   };
 
-const fetchMessages = async (roomId) => {
-  try {
-    setIsLoading(true);
-    dispatch(clearMessages(roomId));
-
-    const response = await fetch(
-      `${BASE_URL}/${API_PREFIX}/chat/admin/messages`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-    const allMessages = await response.json();
-
-    // ✅ Filter only messages of the selected room
-    const roomMessages = allMessages.filter(
-      (msg) => String(msg.chatRoomId) === String(roomId)
-    );
-
-    // ✅ Sort messages chronologically
-    roomMessages.sort(
-      (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-    );
-
-    // ✅ Process each message
-    roomMessages.forEach((msg) => {
-      const isMine = msg.sender?.id === userId;
-
-      dispatch(
-        addMessage({
-          roomId,
-          message: {
-            id: msg.id,
-            content: msg.content,
-            type: isMine ? "outgoing" : "incoming",
-            status: msg.status || "SENT",
-            sender: msg.sender || { id: userId, name: userName },
-            createdAt: msg.createdAt || new Date().toISOString(),
-          },
-        })
-      );
-
-      // ✅ Mark incoming messages as read if not already
-      if (!isMine && msg.status !== "READ") {
-        markMessageAsRead(msg.id, roomId);
-      }
-    });
-  } catch (err) {
-    message.error(`Failed to fetch messages: ${err.message}`);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-
-
-  const sendMessage = async () => {
-    if (!inputText.trim() || !activeRoom || !isConnected) {
-      message.warning('Cannot send message: No active room or WebSocket disconnected');
-      return;
-    }
-
-    const tempId = `temp-${Date.now()}`;
-    const createdAt = new Date().toISOString();
-
-    const optimisticMessage = {
-      id: tempId,
-      content: inputText,
-      type: 'outgoing',
-      status: 'SENT',
-      sender: { id: userId, name: userName },
-      createdAt,
-    };
-
-    dispatch(addMessage({ roomId: activeRoom.id, message: optimisticMessage }));
-    setInputText('');
-
+  const fetchMessages = async (roomId) => {
     try {
-      const response = await fetch(`${BASE_URL}/${API_PREFIX}/chat/admin/rooms/${activeRoom.id}/messages`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content: inputText,
-          parentMessageId: null,
-          adminMessage:true,
-          mine:true
-        }),
-      });
-      if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-      const newMessage = await response.json();
+      setIsLoading(true);
+      dispatch(clearMessages(roomId));
 
-      dispatch(
-        updateMessageStatus({
-          roomId: activeRoom.id,
-          messageId: tempId,
-          status: newMessage.status || 'SENT',
-          updatedMessage: {
-            id: newMessage.id,
-            content: newMessage.content,
-            type: 'outgoing',
-            status: newMessage.status || 'SENT',
-            sender: { id: userId, name: userName },
-            createdAt: newMessage.createdAt || createdAt,
-          },
-        })
-      );
-
-    } catch (err) {
-      message.error(`Failed to send message: ${err.message}`);
-      dispatch(clearMessages(activeRoom.id));
-      fetchMessages(activeRoom.id);
-    }
-  };
-
-  const markMessageAsRead = async (messageId, roomId) => {
-    try {
       const response = await fetch(
-        `${BASE_URL}/${API_PREFIX}/chat/messages/${messageId}/status`,
-        {
-          method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ status: 'READ' }),
-        }
+        `${BASE_URL}/${API_PREFIX}/chat/admin/messages`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+
       if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-      dispatch(
-        updateMessageStatus({
-          roomId,
-          messageId,
-          status: 'READ',
-        })
+      const allMessages = await response.json();
+
+      // Filter messages for the selected room
+      const roomMessages = allMessages.filter(
+        (msg) => String(msg.chatRoomId) === String(roomId)
       );
-      dispatch(updateUnreadCount({ roomId, count: 0 }));
-      fetchRooms();
-    } catch (err) {
-      message.error(`Failed to mark message as read: ${err.message}`);
-    }
-  };
 
-  // const closeChat = async () => {
-  //   if (!activeRoom) return;
-  //   try {
-  //     const response = await fetch(`${BASE_URL}/${API_PREFIX}/chat/rooms/${activeRoom.id}/status`, {
-  //       method: 'PATCH',
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({ status: 'CLOSED' }),
-  //     });
-  //     if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-  //     dispatch(closeChatRoom(activeRoom.id));
-  //     setShowChatWindow(false);
-  //     dispatch(setActiveRoom(null));
-  //     localStorage.removeItem('lastActiveRoomId');
-  //     message.success('Chat room closed successfully');
-  //     fetchRooms();
-  //   } catch (err) {
-  //     message.error(`Failed to close chat room: ${err.message}`);
-  //   }
-  // };
+      // Sort messages chronologically
+      roomMessages.sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
 
-  
-  const handleTyping = (e) => {
-    setInputText(e.target.value);
-    if (activeRoom && isConnected) {
-      sendTypingEvent({
-        destination: `/app/chat/${activeRoom.id}/typing`,
-        body: JSON.stringify({
-          type: 'TYPING',
-          roomId: activeRoom.id,
-          userId,
-          userName,
-        }),
-        headers: { Authorization: `Bearer ${token}` },
+      // Process each message
+      roomMessages.forEach((msg) => {
+        const isAdminMessage = msg.adminMessage === true;
+        const isMine = msg.mine === true;
+
+        dispatch(
+          addMessage({
+            roomId,
+            message: {
+              id: msg.id,
+              content: msg.content,
+              sender: msg.sender || { id: 'unknown', name: 'Unknown' },
+              createdAt: msg.createdAt || new Date().toISOString(),
+              status: msg.status || 'SENT',
+              readAt: msg.readAt,
+              adminMessage: isAdminMessage,
+              mine: isMine,
+            },
+          })
+        );
       });
-      if (typingTimeout) clearTimeout(typingTimeout);
-      setTypingTimeout(
-        setTimeout(() => {
-          sendTypingEvent({
-            destination: `/app/chat/${activeRoom.id}/typing`,
-            body: JSON.stringify({
-              type: 'STOP_TYPING',
-              roomId: activeRoom.id,
-              userId,
-              userName,
-            }),
-            headers: { Authorization: `Bearer ${token}` },
-          });
-        }, 2000)
-      );
+    } catch (err) {
+      message.error(`Failed to fetch messages: ${err.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -348,14 +190,33 @@ const fetchMessages = async (roomId) => {
   const filteredRooms = rooms.filter(
     (room) =>
       room.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      room.district.toLowerCase().includes(searchTerm.toLowerCase())
+      room.district.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      room.propertyTitle.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Get participant names for active room
+  const getParticipantNames = (roomMessages) => {
+    if (!roomMessages || roomMessages.length === 0) return [];
+    const participants = new Set();
+    roomMessages.forEach((msg) => {
+      if (msg.sender && msg.sender.name) {
+        participants.add(msg.sender.name);
+      }
+    });
+    return Array.from(participants);
+  };
+
+  const activeRoomMessages = messages[activeRoom?.id] || [];
+  const participantNames = getParticipantNames(activeRoomMessages);
 
   return (
     <div className="min-h-screen bg-gray-100 font-inter">
       <Spin spinning={isLoading || authLoading}>
         <header className="bg-cyan-800 text-white p-4 flex justify-between items-center shadow-lg">
-          <h1 className="text-xl font-bold">NearProp Chat</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-bold">NearProp Admin Chat Viewer</h1>
+            <Tag color="gold" className="text-xs">View Only</Tag>
+          </div>
           {user && (
             <div className="flex items-center gap-3">
               <Avatar src={user.profileImageUrl || '/assets/default-avatar.png'} size={40} />
@@ -364,40 +225,41 @@ const fetchMessages = async (roomId) => {
           )}
         </header>
         <div className="flex flex-1 h-[calc(100vh-64px)]">
-          <div className={`w-full md:w-96 bg-white border-r border-gray-200 flex flex-col ${showChatWindow ? 'hidden md:flex' : 'flex'}`}>
+          {/* Sidebar - Chat Rooms List */}
+          <div
+            className={`w-full md:w-96 bg-white border-r border-gray-200 flex flex-col ${showChatWindow ? 'hidden md:flex' : 'flex'
+              }`}
+          >
             <div className="p-4 border-b border-gray-200">
               <Input
-                placeholder="Search by name or district"
+                placeholder="Search by name, district, or property"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="rounded-lg"
               />
             </div>
-            <div className="flex-1 overflow-y-auto p-1 ">
-
-              {filteredRooms.length === 0 && <div className="p-4 text-gray-500 text-center">No chats found</div>}
+            <div className="flex-1 overflow-y-auto p-1">
+              {filteredRooms.length === 0 && (
+                <div className="p-4 text-gray-500 text-center">No chats found</div>
+              )}
               {filteredRooms.map((chat) => (
                 <Tooltip key={chat.id} title={`Property: ${chat.propertyTitle}`} placement="right">
                   <div
-                    className={`chat-item flex items-center p-4 gap-2 border-b border-gray-100 cursor-pointer hover:bg-cyan-50 ${activeRoom?.id === chat.id ? 'bg-cyan-100' : ''}`}
+                    className={`chat-item flex items-center p-4 gap-2 border-b border-gray-100 cursor-pointer hover:bg-cyan-50 transition-colors ${activeRoom?.id === chat.id ? 'bg-cyan-100' : ''
+                      }`}
                     onClick={() => handleChatSelect(chat)}
                   >
                     <Avatar src={chat.thumbnail} size={48} className="mr-3" />
                     <div className="flex-1 gap-1">
                       <div className="flex justify-between gap-2">
-                        <div>
+                        <div className="flex-1">
                           <div className="font-semibold text-gray-800">{chat.name}</div>
                           <div className="text-sm text-gray-500">{chat.district}</div>
-                          <div className="text-sm text-green-500">{chat.propertyTitle}</div>
+                          <div className="text-xs text-green-600 truncate">{chat.propertyTitle}</div>
                         </div>
                         {chat.unreadCount > 0 && (
-                          <span className="bg-cyan-600 text-white text-xs font-medium rounded-full px-2 py-1">
-                            {chat.unreadCount}
-                          </span>
+                          <Badge count={chat.unreadCount} className="ml-2" />
                         )}
-                      </div>
-                      <div className="text-sm text-gray-500 truncate max-w-[200px]">
-                        {(messages[chat.id]?.slice(-1)[0]?.content || 'No messages yet')}
                       </div>
                     </div>
                   </div>
@@ -405,102 +267,125 @@ const fetchMessages = async (roomId) => {
               ))}
             </div>
           </div>
+
+          {/* Main Chat Window */}
           <div
             ref={chatWindowRef}
             className={`flex-1 flex flex-col bg-gray-50 ${showChatWindow ? 'flex' : 'hidden md:flex'}`}
           >
             {activeRoom ? (
               <>
-                <div className="flex items-center p-4 bg-white border-b border-gray-200">
+                {/* Chat Header */}
+                <div className="flex items-center p-4 bg-white border-b border-gray-200 shadow-sm">
                   <Button
                     type="text"
                     icon={<ArrowLeftOutlined />}
                     onClick={handleBack}
                     className="md:hidden mr-3"
                   />
-                  <Avatar src={activeRoom.thumbnail} size={40} />
-                  <div className="ml-3">
-                    <div className="font-semibold text-cyan-800">{activeRoom.name}</div>
+                  <Avatar src={activeRoom.thumbnail} size={48} />
+                  <div className="ml-3 flex-1">
+                    <div className="font-semibold text-cyan-800 text-lg">{activeRoom.name}</div>
                     <div className="text-sm text-gray-500">{activeRoom.district}</div>
+                    <div className="text-xs text-gray-400">
+                      Property: {activeRoom.propertyTitle}
+                    </div>
+                    {participantNames.length > 0 && (
+                      <div className="text-xs text-purple-600 mt-1">
+                        Participants: {participantNames.join(', ')}
+                      </div>
+                    )}
                   </div>
-                  <div className="ml-auto flex items-center gap-2">
-                    <Link to={`/dashboard/properties/${activeRoom.propertyId}`} className="text-sm px-2 flex gap-1 items-center  text-cyan-600 animate-pulse hover:underline">
-                    View Property
-                    </Link>
-                    {/* <Button
-                      type="text"
-                      icon={<CloseOutlined />}
-                      onClick={closeChat}
-                      className="text-red-500"
+                  <div className="ml-auto flex items-center gap-3">
+                    <Link
+                      to={`/dashboard/properties/${activeRoom.propertyId}`}
+                      className="text-sm px-3 py-1 flex gap-1 items-center text-cyan-600 hover:bg-cyan-50 rounded-lg transition-colors"
                     >
-                      Close Chat
-                    </Button> */}
-
+                      <EyeOutlined />
+                      View Property
+                    </Link>
                     <span className={`text-sm ${isConnected ? 'text-green-500' : 'text-red-500'}`}>
-                      {isConnected ? '' : 'Disconnected'}
+                      {isConnected ? '● Connected' : '● Disconnected'}
                     </span>
                   </div>
                 </div>
-                <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-3">
-                
-                  {(messages[activeRoom.id] || []).map((msg, idx) => (
-                    <div
-                      key={msg.id || idx}
-                      className={`message max-w-[70%] p-3 rounded-lg shadow-sm ${msg.type == 'outgoing' ? 'bg-cyan-100 self-end' : 'bg-white self-start'}`}
-                      onClick={() => !msg.mine && msg.status !== 'READ' && markMessageAsRead(msg.id, activeRoom.id)}
-                    >
-                      <div className="text-sm font-semibold text-gray-800">{msg.sender?.name || 'Unknown'}</div>
-                      <div className="text-gray-700">{msg.content}</div>
-                      <div className="flex justify-end items-center gap-2 mt-1">
-                        <div className="text-xs text-gray-500">{new Date(msg.createdAt).toLocaleString()}</div>
-                        {msg.type === 'outgoing' && (
-                          <div className="text-xs">
-                            {msg.status === 'SENT' && <DoubleRightOutlined className="text-gray-500" />}
-                            {msg.status === 'DELIVERED' && <DoubleRightOutlined className="text-gray-800" />}
-                            {msg.status === 'READ' && <DoubleRightOutlined className="text-blue-500" />}
+
+                {/* Messages Area */}
+                <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-3 bg-gradient-to-b from-gray-50 to-gray-100">
+                  {activeRoomMessages.length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center text-gray-400">
+                      No messages in this conversation yet
+                    </div>
+                  ) : (
+                    activeRoomMessages.map((msg, idx) => (
+                      <div
+                        key={msg.id || idx}
+                        className="message flex items-start gap-3"
+                      >
+                        <Avatar
+                          src={msg.sender?.avatar}
+                          icon={<UserOutlined />}
+                          size={36}
+                          className="flex-shrink-0"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-semibold text-gray-800">
+                              {msg.sender?.name || 'Unknown User'}
+                            </span>
+                            {msg.adminMessage && (
+                              <Tag color="red" className="text-xs">
+                                Admin
+                              </Tag>
+                            )}
+                            <span className="text-xs text-gray-400">
+                              {new Date(msg.createdAt).toLocaleString('en-IN', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  <div ref={messagesEndRef} />
-                 
-                  {currentTypingUsers.length > 0 && (
-                    <div className="flex items-center gap-2 text-sm text-gray-500 italic">
-                      {currentTypingUsers.map((user) => (
-                        <div key={user.userId} className="flex items-center gap-1">
-                          <Avatar src={user.avatar || '/assets/default-avatar.png'} size={24} />
-                          <span>{user.userName}</span>
+                          <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 max-w-[70%]">
+                            <div className="text-gray-700">{msg.content}</div>
+                            <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
+                              <span>Status: {msg.status}</span>
+                              {msg.readAt && (
+                                <span>
+                                  Read at:{' '}
+                                  {new Date(msg.readAt).toLocaleString('en-IN', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      ))}
-                      <span>is typing</span>
-                      <span className="typing-dots">...</span>
-                    </div>
+                      </div>
+                    ))
                   )}
+                  <div ref={messagesEndRef} />
                 </div>
-                <div className="p-4 bg-white border-t border-gray-200 flex gap-3">
-                  <Input
-                    placeholder="Type a message"
-                    value={inputText}
-                    onChange={handleTyping}
-                    onPressEnter={sendMessage}
-                    disabled={!isConnected}
-                    className="rounded-lg py-0.5"
-                  />
-                  <Button
-                    type="primary"
-                    icon={<SendOutlined />}
-                    onClick={sendMessage}
-                    disabled={!isConnected || !inputText.trim()}
-                    className="bg-cyan-600 hover:bg-cyan-700"
-                  >
-                    Send
-                  </Button>
+
+                {/* Admin View Notice */}
+                <div className="p-4 bg-amber-50 border-t border-amber-200">
+                  <div className="flex items-center justify-center gap-2 text-amber-700">
+                    <EyeOutlined />
+                    <span className="text-sm font-medium">
+                      You are viewing this conversation as an admin. Users cannot see this panel.
+                    </span>
+                  </div>
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-gray-500">
-                Select a chat room
+              <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+                <EyeOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+                <div className="text-lg font-medium">Select a chat room to view conversation</div>
+                <div className="text-sm mt-2">Admin View Mode - Read Only</div>
               </div>
             )}
           </div>

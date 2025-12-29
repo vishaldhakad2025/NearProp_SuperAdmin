@@ -1,95 +1,112 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchVisits, updateVisitStatus } from "../../redux/slices/visitsSlice";
-import { Table, Tooltip, Button, Pagination, Drawer, Descriptions } from "antd";
-import { CheckCircleTwoTone, CloseCircleTwoTone, EyeOutlined } from "@ant-design/icons";
+import {
+  Table,
+  Tooltip,
+  Button,
+  Pagination,
+  Modal,
+  Tag,
+  Input,
+  Image,
+  Descriptions,
+  Divider,
+  Row,
+  Col,
+} from "antd";
+import {
+  EyeOutlined,
+  CheckOutlined,
+  CloseOutlined,
+} from "@ant-design/icons";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+
+const { Search } = Input;
 
 export default function VisitManagement() {
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { visits, loading, error, totalElements } = useSelector((s) => s.visits);
+  const { visits, loading, totalElements } = useSelector((s) => s.visits);
 
   const [page, setPage] = useState(1);
   const [pageSize] = useState(6);
   const [search, setSearch] = useState("");
-  const [selectedVisit, setSelectedVisit] = useState(null); // for Drawer
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedVisit, setSelectedVisit] = useState(null);
 
   useEffect(() => {
     if (token) {
       dispatch(fetchVisits({ status: "PENDING", page: page - 1, size: pageSize, token }));
     }
-  }, [dispatch, token, page, pageSize]);
+  }, [dispatch, token, page]);
 
   const handleUpdate = (id, status) => {
-    dispatch(
-      updateVisitStatus({
-        id,
-        status,
-        notes: status === "CONFIRMED" ? "Visit confirmed" : "Visit rejected",
-        token,
-      })
-    )
+    const notes = status === "CONFIRMED" ? "Visit confirmed by admin" : "Visit rejected by admin";
+
+    dispatch(updateVisitStatus({ id, status, notes, token }))
       .unwrap()
       .then(() => {
         toast.success(`Visit ${status.toLowerCase()} successfully!`);
+        dispatch(fetchVisits({ status: "PENDING", page: page - 1, size: pageSize, token }));
       })
       .catch((err) => {
-        toast.error(err || "Failed to update visit");
+        toast.error(err?.message || "Failed to update visit status");
       });
   };
 
-  // Inside VisitManagement component
+  const handleView = (record) => {
+    setSelectedVisit(record);
+    setModalOpen(true);
+  };
+
   const handleExportExcel = () => {
     if (!visits || visits.length === 0) {
       toast.error("No visit data to export!");
       return;
     }
 
-    // Transform data for Excel
     const exportData = visits.map((v) => ({
       "Visit ID": v.id,
-      "Property Title": v.property?.title,
-      "Property Address": v.property?.address,
-      "Buyer Name": v.user?.name,
-      "Buyer Phone": v.user?.phone,
+      "Property Title": v.property?.title || "-",
+      "Property Address": v.property?.address || "-",
+      "Buyer Name": v.user?.name || "-",
+      "Buyer Phone": v.user?.phone || "-",
       "Scheduled Time": new Date(v.scheduledTime).toLocaleString(),
       "Notes": v.notes || "No notes",
       "Status": v.status,
     }));
 
-    // Create worksheet
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Visits");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Pending Visits");
 
-    // Save file
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     const data = new Blob([excelBuffer], { type: "application/octet-stream" });
-    saveAs(data, `visits_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    saveAs(data, `pending_visits_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
-  // Table Columns
+
   const columns = [
     {
       title: "Visit ID",
       dataIndex: "id",
       key: "id",
+      width: 80,
     },
     {
       title: "Property",
-      dataIndex: ["property", "title"],
       key: "property",
       render: (_, record) => (
         <Button
           type="link"
           onClick={() => navigate(`/dashboard/properties/${record.property.id}`)}
         >
-          {record.property.title}
+          {record.property?.title || "N/A"}
         </Button>
       ),
     },
@@ -97,78 +114,97 @@ export default function VisitManagement() {
       title: "Buyer",
       dataIndex: ["user", "name"],
       key: "buyer",
+      render: (name) => name || "-",
     },
     {
       title: "Phone",
       dataIndex: ["user", "phone"],
       key: "phone",
+      render: (phone) => phone || "-",
     },
     {
-      title: "Scheduled",
+      title: "Scheduled Time",
       dataIndex: "scheduledTime",
       key: "scheduledTime",
       render: (time) => new Date(time).toLocaleString(),
     },
     {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (
+        <Tag color={status === "PENDING" ? "orange" : status === "CONFIRMED" ? "green" : "red"}>
+          {status === "PENDING" ? "Pending Review" : status}
+        </Tag>
+      ),
+    },
+    {
       title: "Actions",
       key: "actions",
+      fixed: "right",
+      width: 200,
       render: (_, record) => (
         <div className="flex gap-2">
-          <Tooltip title="Confirm Visit">
-            <Button
-              type="primary"
-              size="small"
-              icon={<CheckCircleTwoTone twoToneColor="#52c41a" />}
-              onClick={() => handleUpdate(record.id, "CONFIRMED")}
-            >
-              Confirm
-            </Button>
+          <Tooltip title="View Full Details">
+            <Button icon={<EyeOutlined />} size="small" onClick={() => handleView(record)} />
           </Tooltip>
-          <Tooltip title="Reject Visit">
-            <Button
-              danger
-              size="small"
-              icon={<CloseCircleTwoTone twoToneColor="#f5222d" />}
-              onClick={() => handleUpdate(record.id, "REJECTED")}
-            >
-              Reject
-            </Button>
-          </Tooltip>
-          <Tooltip title="View Visit Details">
-            <Button
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => setSelectedVisit(record)}
-            />
-          </Tooltip>
+
+          {/* {record.status === "PENDING" && (
+            <>
+              <Tooltip title="Approve Visit">
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<CheckOutlined />}
+                  onClick={() => handleUpdate(record.id, "CONFIRMED")}
+                >
+                  Approve
+                </Button>
+              </Tooltip>
+              <Tooltip title="Reject Visit">
+                <Button
+                  danger
+                  size="small"
+                  icon={<CloseOutlined />}
+                  onClick={() => handleUpdate(record.id, "REJECTED")}
+                >
+                  Reject
+                </Button>
+              </Tooltip>
+            </>
+          )} */}
         </div>
       ),
     },
   ];
 
-  // Filtered Data
   const filteredVisits = visits.filter(
     (v) =>
       v.user?.name?.toLowerCase().includes(search.toLowerCase()) ||
+      v.user?.phone?.toLowerCase().includes(search.toLowerCase()) ||
       v.property?.title?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto bg-white rounded-xl shadow">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto bg-white rounded-xl shadow-lg">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
-        <h1 className="text-2xl font-bold">Visit Management</h1>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Visit Management</h1>
+          <p className="text-gray-600 mt-1">Manage and approve pending property visit requests</p>
+        </div>
 
-        <div className="flex gap-2 w-full md:w-auto">
-          <input
-            type="text"
-            placeholder="Search by buyer or property..."
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Search
+            placeholder="Search by buyer name, phone or property..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full md:w-80 pl-3 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            allowClear
+            style={{ width: 300 }}
+            size="large"
           />
-          <Button type="primary" onClick={handleExportExcel}>
-            Export Excel
+          <Button type="primary" size="large" onClick={handleExportExcel}>
+            Export to Excel
           </Button>
         </div>
       </div>
@@ -180,60 +216,108 @@ export default function VisitManagement() {
         rowKey="id"
         loading={loading}
         pagination={false}
-        scroll={{ x: true }}
-        className="overflow-x-auto"
+        scroll={{ x: 1100 }}
+        bordered
       />
 
       {/* Pagination */}
-      {totalElements > 0 && (
-        <div className="flex justify-center mt-6">
+      {totalElements > pageSize && (
+        <div className="flex justify-center mt-8">
           <Pagination
             current={page}
             pageSize={pageSize}
             total={totalElements}
             onChange={(p) => setPage(p)}
             showSizeChanger={false}
+            showQuickJumper
           />
         </div>
       )}
 
-      {/* Error */}
-      {error && <p className="text-red-500 text-center mt-4">{error}</p>}
-
-      {/* Drawer for Visit Details */}
-      <Drawer
-        title={`Visit Details - ID ${selectedVisit?.id}`}
-        placement="right"
-        width={400}
-        onClose={() => setSelectedVisit(null)}
-        open={!!selectedVisit}
+      {/* Full Details Modal Popup */}
+      <Modal
+        title={<span className="text-xl font-bold">Visit Request Details - ID #{selectedVisit?.id}</span>}
+        open={modalOpen}
+        onCancel={() => setModalOpen(false)}
+        footer={null}
+        width={800}
+        centered
       >
         {selectedVisit && (
-          <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="Property Title">
-              {selectedVisit.property.title}
-            </Descriptions.Item>
-            <Descriptions.Item label="Property Address">
-              {selectedVisit.property.address}
-            </Descriptions.Item>
-            <Descriptions.Item label="Buyer Name">
-              {selectedVisit.user?.name}
-            </Descriptions.Item>
-            <Descriptions.Item label="Buyer Phone">
-              {selectedVisit.user?.phone}
-            </Descriptions.Item>
-            <Descriptions.Item label="Scheduled Time">
-              {new Date(selectedVisit.scheduledTime).toLocaleString()}
-            </Descriptions.Item>
-            <Descriptions.Item label="Notes">
-              {selectedVisit.notes || "No notes"}
-            </Descriptions.Item>
-            <Descriptions.Item label="Status">
-              {selectedVisit.status}
-            </Descriptions.Item>
-          </Descriptions>
+          <>
+            {/* Property Image */}
+            {selectedVisit.property?.imageUrls?.[0] && (
+              <div className="mb-6 text-center">
+                <Image
+                  src={selectedVisit.property.imageUrls[0]}
+                  alt={selectedVisit.property.title}
+                  style={{ maxHeight: "400px", borderRadius: "8px", objectFit: "cover" }}
+                  preview={{ mask: "Click to enlarge" }}
+                />
+              </div>
+            )}
+
+            <Divider>Property Details</Divider>
+            <Descriptions bordered column={2} size="middle">
+              <Descriptions.Item label="Title" span={2}>
+                <strong>{selectedVisit.property.title}</strong>
+              </Descriptions.Item>
+              <Descriptions.Item label="Type">{selectedVisit.property.type}</Descriptions.Item>
+              <Descriptions.Item label="Price">₹{selectedVisit.property.price.toLocaleString()}</Descriptions.Item>
+              <Descriptions.Item label="Area">{selectedVisit.property.area} sq ft</Descriptions.Item>
+              <Descriptions.Item label="Bedrooms">{selectedVisit.property.bedrooms}</Descriptions.Item>
+              <Descriptions.Item label="Bathrooms">{selectedVisit.property.bathrooms}</Descriptions.Item>
+              <Descriptions.Item label="Status">
+                <Tag color={selectedVisit.property.status === "FOR_SALE" ? "green" : "default"}>
+                  {selectedVisit.property.status}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Full Address" span={2}>
+                {selectedVisit.property.address}
+                <br />
+                <span className="text-gray-600">
+                  {selectedVisit.property.city}, {selectedVisit.property.state} - {selectedVisit.property.pincode}
+                </span>
+              </Descriptions.Item>
+              <Descriptions.Item label="Description" span={2}>
+                {selectedVisit.property.description || <em>No description</em>}
+              </Descriptions.Item>
+            </Descriptions>
+
+            <Divider>Visit & Buyer Details</Divider>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Descriptions bordered column={1}>
+                  <Descriptions.Item label="Buyer Name">
+                    <strong>{selectedVisit.user.name}</strong>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Buyer Phone">
+                    {selectedVisit.user.phone}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Scheduled Time">
+                    <strong>{new Date(selectedVisit.scheduledTime).toLocaleString()}</strong>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Current Status">
+                    <Tag color={selectedVisit.status === "PENDING" ? "orange" : selectedVisit.status === "CONFIRMED" ? "green" : "red"}>
+                      {selectedVisit.status}
+                    </Tag>
+                  </Descriptions.Item>
+                </Descriptions>
+              </Col>
+              <Col span={12}>
+                <Descriptions bordered column={1}>
+                  <Descriptions.Item label="Buyer Notes">
+                    {selectedVisit.notes || <em className="text-gray-500">No notes provided</em>}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Request Date">
+                    {new Date(selectedVisit.createdAt).toLocaleDateString()}
+                  </Descriptions.Item>
+                </Descriptions>
+              </Col>
+            </Row>
+          </>
         )}
-      </Drawer>
+      </Modal>
     </div>
   );
 }

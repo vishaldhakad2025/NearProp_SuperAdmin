@@ -14,9 +14,7 @@ import {
   Badge,
   Space,
   Tooltip,
-  Segmented,
   Avatar,
-  Switch,
   DatePicker,
 } from 'antd';
 import {
@@ -140,11 +138,10 @@ const UserManagementDashboard = () => {
   // filters / table state
   const [search, setSearch, debouncedSearch] = useDebouncedState('', 500);
   const [roleFilter, setRoleFilter] = useState([]);
-  const [verifiedFilter, setVerifiedFilter] = useState('all'); // 'all', 'verified', 'unverified'
+  const [verifiedFilter, setVerifiedFilter] = useState('all');
   const [dateRange, setDateRange] = useState([null, null]);
   const [page, setPage] = useState(0);
-  const [size] = useState(10);
-
+  const [size, setSize] = useState(10); // Changed to state instead of constant
 
   // UI state
   const [viewOpen, setViewOpen] = useState(false);
@@ -200,7 +197,6 @@ const UserManagementDashboard = () => {
     setViewOpen(true);
   };
 
-  // console.log('Selected User:', users);
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
       const searchMatch =
@@ -250,7 +246,13 @@ const UserManagementDashboard = () => {
     }
   };
 
-  // Derived stats (client-side for quick overview)
+  // Handler for page size change
+  const handlePageSizeChange = (newSize) => {
+    setSize(newSize);
+    setPage(0); // Reset to first page when changing page size
+  };
+
+  // Derived stats
   const totalUsers = totalElements || 0;
   const verifiedUsers = users.filter((u) => u.mobileVerified || u.emailVerified).length;
   const activeSubscriptions = users.reduce((acc, u) => acc + (u.activeSubscriptionCount || 0), 0);
@@ -259,7 +261,6 @@ const UserManagementDashboard = () => {
     return acc;
   }, {});
 
-  // compact density
   const tableSize = density === 'Compact' ? 'small' : 'middle';
 
   const columns = useMemo(
@@ -397,7 +398,6 @@ const UserManagementDashboard = () => {
       {
         title: 'Actions',
         key: 'actions',
-        // fixed: 'right',
         width: 90,
         render: (_, record) => (
           <Tooltip title="View details">
@@ -424,14 +424,20 @@ const UserManagementDashboard = () => {
               <Title level={4} style={{ margin: 0 }}>
                 User Management
               </Title>
-              {/* <Tag color="cyan">v1.0</Tag> */}
             </div>
             <Space wrap>
-              {/* <Segmented
-                value={density}
-                onChange={setDensity}
-                options={['Comfortable', 'Compact']}
-              /> */}
+              <Select
+                value={size}
+                onChange={handlePageSizeChange}
+                style={{ width: 120 }}
+                placeholder="Page Size"
+              >
+                <Option value={10}>10 / page</Option>
+                <Option value={25}>25 / page</Option>
+                <Option value={50}>50 / page</Option>
+                <Option value={100}>100 / page</Option>
+                <Option value={200}>200 / page</Option>
+              </Select>
               <Button icon={<ReloadOutlined />} onClick={() => dispatch(fetchUsers({ page, size, search: debouncedSearch, role: roleFilter.join(','), verified: verifiedFilter === 'all' ? '' : verifiedFilter === 'verified' ? 'true' : 'false', since: dateRange[0]?.format('YYYY-MM-DD'), until: dateRange[1]?.format('YYYY-MM-DD') }))}>
                 Refresh
               </Button>
@@ -524,6 +530,7 @@ const UserManagementDashboard = () => {
               onChange: (p) => setPage(p - 1),
               showSizeChanger: false,
               responsive: true,
+              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
             }}
             scroll={{ x: 900 }}
             className="users-table"
@@ -626,11 +633,9 @@ const UserManagementDashboard = () => {
           </div>
         </Drawer>
 
-
         <ToastContainer position="top-right" autoClose={3000} />
       </Spin>
 
-      {/* Tiny Tailwind helpers if not globally loaded (optional) */}
       <style>{`
         .bg-gray-50 { background-color: #F9FAFB; }
         .border-gray-100 { border-color: #F3F4F6; }

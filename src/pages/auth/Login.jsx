@@ -100,12 +100,29 @@ const Login = () => {
                   setMobileNumber(value);
                   setError("");
                 }}
-                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault(); // default form submit roko
+
+                    if (mobileNumber.length !== 10) {
+                      Swal.fire({
+                        toast: true,
+                        position: "top-end",
+                        icon: "warning",
+                        title: "Please enter a valid 10-digit mobile number",
+                        showConfirmButton: false,
+                        timer: 3000,
+                      });
+                      return;
+                    }
+                    handleSendOtp(e);
+                  }
+                }}
                 placeholder="Enter mobile number"
-                aria-label="Mobile Number"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
               />
-              <FaMobileAlt className="absolute left-3 top-3 text-blue-500 text-lg" />
+              <h1 className="absolute left-2 top-1   text-blue-500 text-lg"> +91 </h1>
+
             </div>
 
             {/* Sign In Button */}
@@ -124,8 +141,8 @@ const Login = () => {
             </button>
           </form>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

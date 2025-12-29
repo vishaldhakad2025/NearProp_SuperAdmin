@@ -37,6 +37,8 @@ const CouponListPage = () => {
     dispatch(getAllCoupons({ page: page - 1, size: 10 }));
   }, [dispatch, page]);
 
+
+
   const handleToggle = (record) => {
     Swal.fire({
       title: `Are you sure you want to ${record.active ? "deactivate" : "activate"} this coupon?`,
@@ -51,20 +53,45 @@ const CouponListPage = () => {
     });
   };
 
+
+
   const handleDelete = (record) => {
     Swal.fire({
       title: "Delete this coupon?",
-      text: `Are you sure you want to delete the coupon \"${record.code}\"?`,
+      text: `Are you sure you want to delete the coupon "${record.code}"?`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes, delete it!",
       confirmButtonColor: "#d33",
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        dispatch(deleteCoupon(record.id));
+        try {
+          await dispatch(deleteCoupon(record.id)).unwrap();
+
+          // ✅ Success Toast
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: "Coupon deleted successfully",
+            showConfirmButton: false,
+            timer: 3000,
+          });
+
+        } catch (error) {
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "error",
+            title: "Failed to delete coupon (Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \"undefined\)",
+            showConfirmButton: false,
+            timer: 3000,
+          });
+        }
       }
     });
   };
+
 
   const handleView = (id) => {
     dispatch(getSingleCoupon(id)).then(() => setViewModal(true));

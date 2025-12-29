@@ -29,7 +29,7 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
   const handleItemClick = (label, url, isLogout = false) => {
     if (isLogout) {
       dispatch(logout());
-      navigate("/login");
+      navigate("/");
     } else if (url) {
       navigate(url);
     }
@@ -57,7 +57,7 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
             { label: "Properties Search ", url: "/dashboard/propertysearch" },
             { label: "Properties Update Requests", url: "/dashboard/properties/seller-updates" },
 
-            { icon: <ActivityIcon size={18} />, label: " Visit Tracking", url: "/dashboard/visits" },
+            // { icon: <ActivityIcon size={18} />, label: " Visit Tracking", url: "/dashboard/visits" },
 
             { label: "Pending Properties", url: "/dashboard/properties/pending" },
             // { label: "Districts", url: "/dashboard/properties/districts" },
@@ -86,14 +86,14 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
         { icon: <Video size={18} />, label: "Reels Management", url: "/dashboard/reels" },
       ],
     },
-    
+
     {
       section: "Sub-Admin Management",
       items: [
         { icon: <UserCheck2Icon size={18} />, label: "Sub-Admins", url: "/dashboard/sub-admins" },
       ],
     },
-      {
+    {
       section: "Business Tools",
       items: [
         { icon: <PercentCircle size={18} />, label: "Subscription Plans", url: "/dashboard/subscriptions" },
@@ -127,17 +127,13 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
       section: "Pg & Hostal Management",
       items: [
         { icon: <Layers size={18} />, label: "Landlords", url: "/dashboard/landlords" },
-        // { icon: <Layers size={18} />, label: "Pg & Hostel", url: "/dashboard/pg-hostel" },
+        { icon: <Layers size={18} />, label: "Enquiry", url: "/enquiry" },
 
       ],
     },
-  
-    {
-      section: "Settings",
-      items: [
-        // { icon: <Settings size={18} />, label: "dashboard Settings", url: "/dashboard/settings" },
-      ],
-    },
+
+
+
     {
       section: " ",
       items: [
@@ -188,6 +184,7 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
                   <div className="flex items-center gap-3">
                     <span>{item.icon}</span>
                     <span>{item.label}</span>
+
                   </div>
                   {item.submenu && (
                     <span className="text-sm">

@@ -154,13 +154,13 @@ const PropertyUpdateRequests = () => {
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         onOk={handleSubmitReview}
-        okText={
-          actionType === "approve"
-            ? "Approve"
-            : actionType === "reject"
-            ? "Reject"
-            : "Close"
-        }
+        // okText={
+        //   actionType === "approve"
+        //     ? "Approve"
+        //     : actionType === "reject"
+        //       ? "Reject"
+        //       : ""
+        // }
         okButtonProps={{
           danger: actionType === "reject",
         }}
@@ -173,8 +173,8 @@ const PropertyUpdateRequests = () => {
           actionType === "approve"
             ? "Approve Property Update"
             : actionType === "reject"
-            ? "Reject Property Update"
-            : "Property Update Details"
+              ? "Reject Property Update"
+              : "Property Update Details"
         }
       >
         {current && (
@@ -205,14 +205,8 @@ const PropertyUpdateRequests = () => {
             </div>
 
             {/* 📝 Notes + Reason */}
-            {(actionType === "approve" || actionType === "reject") && (
-              <div>
-                <TextArea
-                  rows={3}
-                  placeholder="Enter notes..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
+            {( actionType === "reject") && (
+              <div>               
                 {actionType === "reject" && (
                   <TextArea
                     rows={2}

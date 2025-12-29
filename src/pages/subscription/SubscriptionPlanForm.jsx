@@ -66,17 +66,18 @@ const SubscriptionPlanForm = () => {
                 <Option value="SELLER">Seller</Option>
                 <Option value="ADVISOR">Advisor</Option>
                 <Option value="DEVELOPER">Developer</Option>
-                <Option value="FRANCHISEE">Franchisee</Option>
-                <Option value="PROPERTY">Property</Option>
+                {/* <Option value="FRANCHISEE">Franchisee</Option> */}
+                {/* <Option value="PROPERTY">Property</Option> */}
               </Select>
             </Form.Item>
 
             <Form.Item name="price" label="Price (₹)" rules={[{ required: true }]}> 
               <InputNumber min={0} className="w-full" />
             </Form.Item>
-            <Form.Item name="marketingFee" label="Marketing Fee (₹)" rules={[{ required: true }]}> 
+            
+            {/* <Form.Item name="marketingFee" label="Marketing Fee (₹)" rules={[{ required: true }]}> 
               <InputNumber min={0} className="w-full" />
-            </Form.Item>
+            </Form.Item> */}
             <Form.Item name="durationDays" label="Duration (Days)" rules={[{ required: true }]}> 
               <InputNumber min={1} className="w-full" />
             </Form.Item>

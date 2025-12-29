@@ -6,7 +6,6 @@ import {
   fetchRoomsByHotel,
   fetchHotelReels,
   fetchAverageRating,
-  // deleteReel,
 } from "../../redux/slices/hotelBanquetSlice";
 import {
   Spin,
@@ -23,10 +22,7 @@ import {
   Carousel,
   Modal,
   Button,
-  Popconfirm,
 } from "antd";
-import { DeleteOutlined } from "@ant-design/icons";
-import { toast } from "react-toastify";
 import { BiLeftArrow } from "react-icons/bi";
 
 const { Title, Paragraph, Text } = Typography;
@@ -49,18 +45,10 @@ const HotelDetails = () => {
 
   useEffect(() => {
     if (hotelId) {
-      dispatch(fetchHotelById(hotelId)).catch(() =>
-        toast.error("Failed to load hotel details")
-      );
-      dispatch(fetchRoomsByHotel(hotelId)).catch(() =>
-        toast.error("Failed to load rooms")
-      );
-      dispatch(fetchHotelReels(hotelId)).catch(() =>
-        toast.error("Failed to load reels")
-      );
-      dispatch(fetchAverageRating({ type: "hotel", id: hotelId })).catch(() =>
-        toast.error("Failed to load rating")
-      );
+      dispatch(fetchHotelById(hotelId));
+      dispatch(fetchRoomsByHotel(hotelId));
+      dispatch(fetchHotelReels(hotelId));
+      dispatch(fetchAverageRating({ type: "hotel", id: hotelId }));
     }
   }, [dispatch, hotelId]);
 
@@ -71,16 +59,6 @@ const HotelDetails = () => {
   const handleReelClick = (videoUrl) => {
     setCurrentVideo(videoUrl);
     setIsVideoModalVisible(true);
-  };
-
-  const handleDeleteReel = async (reelId) => {
-    try {
-      // await dispatch(deleteReel(reelId)).unwrap();
-      // toast.success("Reel deleted successfully");
-      // dispatch(fetchHotelReels(hotelId)); // Refresh reels
-    } catch (error) {
-      toast.error("Failed to delete reel");
-    }
   };
 
   const handleVideoModalClose = () => {
@@ -105,42 +83,20 @@ const HotelDetails = () => {
   }
 
   const hotel = hotelDetails.data;
-  const avgRating = averageRatings?.data?.averageRating || 0;
-  const totalReviews = averageRatings?.data?.totalReviews || 0;
-  const roomsList = rooms?.data?.rooms || [];
-  const reelsList = reels?.data?.reels || [];
+  const avgRating = averageRatings?.data?.averageRating || hotel.averageRating || 0;
+  const totalReviews = averageRatings?.data?.totalReviews || hotel.reviewCount || 0;
+  const roomsList = rooms?.data?.rooms || hotel.rooms || [];
+  const reelsList = reels?.data?.reels || hotel.reels?.items || [];
   const videosList = hotel.videos || [];
   const imagesList = hotel.images || [];
-  const reviewsList = hotel.reviews || []; // Assumes reviews are included; fetch separately if needed
-
-  // const isOwnerOrAdmin = role === "admin" || (role === "owner" && hotel.userId === user?._id);
+  const reviewsList = hotel.reviews?.items || [];
 
   const renderAmenities = (amenities) => {
-    if (!amenities || amenities.length === 0) return null;
-
-    let arr = [];
-
-    // If it's an array with a single string like '["AC","Swimming","Gym",]'
-    if (Array.isArray(amenities) && typeof amenities[0] === "string") {
-      try {
-        arr = JSON.parse(amenities[0].replace(/,\s*]$/, "]"));
-      } catch (err) {
-        console.error("Failed to parse amenities:", err);
-        return null;
-      }
-    } else if (Array.isArray(amenities)) {
-      // Already a proper array
-      arr = amenities;
-    } else if (typeof amenities === "string") {
-      try {
-        arr = JSON.parse(amenities.replace(/,\s*]$/, "]"));
-      } catch (err) {
-        console.error("Failed to parse amenities string:", err);
-        return null;
-      }
+    if (!amenities || amenities.length === 0) {
+      return <Text type="secondary">—</Text>;
     }
 
-    return arr.map((a, idx) => (
+    return amenities.slice(0, 5).map((a, idx) => (
       <Tag color="blue" key={idx}>
         {a}
       </Tag>
@@ -149,10 +105,18 @@ const HotelDetails = () => {
 
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
-      {/* Video Modal */}
-      <Button className="felx justify-around items-center" onClick={() => navigate(-1)} style={{ marginBottom: "20px" }}>
-        <BiLeftArrow />  Back
+      <Button 
+        style={{ 
+          marginBottom: "20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-start"
+        }} 
+        onClick={() => navigate(-1)}
+      >
+        <BiLeftArrow style={{ marginRight: "8px" }} /> Back
       </Button>
+
       <Modal
         visible={isVideoModalVisible}
         footer={null}
@@ -175,7 +139,6 @@ const HotelDetails = () => {
         )}
       </Modal>
 
-      {/* Hotel Basic Info */}
       <Card style={{ marginBottom: "20px", borderRadius: "10px" }}>
         <Row gutter={[20, 20]} align="middle">
           <Col xs={24} md={16}>
@@ -184,16 +147,18 @@ const HotelDetails = () => {
             </Title>
             <Rate disabled value={Number(avgRating)} allowHalf />
             <Text type="secondary" style={{ marginLeft: "10px" }}>
-              {/* {Number(avgRating).toFixed(0)} / 5   */}
-              {/* ({totalReviews} reviews) */}
+              {Number(avgRating).toFixed(1)} / 5 ({totalReviews} reviews)
             </Text>
             <Paragraph style={{ marginTop: "10px" }}>
               {hotel.description || "No description available"}
             </Paragraph>
             <Card title="Amenities">
-              {renderAmenities(hotel.amenities) || "—"}
+              {renderAmenities(hotel.amenities)}
             </Card>
             <p style={{ marginTop: "10px" }}>
+              <strong>Address:</strong> {hotel.address || "N/A"}
+            </p>
+            <p>
               <strong>City:</strong> {hotel.city || "N/A"}
             </p>
             <p>
@@ -203,10 +168,17 @@ const HotelDetails = () => {
               <strong>Pincode:</strong> {hotel.pincode || "N/A"}
             </p>
             <p>
+              <strong>Contact:</strong> {hotel.contactNumber || "N/A"}
+            </p>
+            <p>
+              <strong>Email:</strong> {hotel.email || "N/A"}
+            </p>
+            <p>
+              <strong>Website:</strong> {hotel.website ? <a href={hotel.website} target="_blank" rel="noopener noreferrer">{hotel.website}</a> : "N/A"}
+            </p>
+            <p>
               <strong>Status:</strong>{" "}
-              <Tag
-                color={hotel.status === "approved" ? "green" : "orange"}
-              >
+              <Tag color={hotel.status === "approved" ? "green" : "orange"}>
                 {hotel.status}
               </Tag>
             </p>
@@ -244,15 +216,14 @@ const HotelDetails = () => {
         </Row>
       </Card>
 
-      {/* Rooms */}
-      <Divider orientation="left">Rooms</Divider>
+      <Divider orientation="left">Rooms ({roomsList.length})</Divider>
       <Row gutter={[16, 16]}>
         {roomsList.length > 0 ? (
           roomsList.map((room) => (
             <Col xs={24} sm={12} md={8} key={room._id}>
               <Card
                 hoverable
-                onClick={() => handleRoomClick(room?._id)}
+                onClick={() => handleRoomClick(room._id)}
                 cover={
                   <img
                     alt={room.type}
@@ -282,10 +253,9 @@ const HotelDetails = () => {
         )}
       </Row>
 
-      {/* Videos */}
       {videosList.length > 0 && (
         <>
-          <Divider orientation="left">Videos</Divider>
+          <Divider orientation="left">Videos ({videosList.length})</Divider>
           <Row gutter={[16, 16]}>
             {videosList.map((vid, idx) => (
               <Col xs={24} sm={12} md={8} key={idx}>
@@ -306,8 +276,7 @@ const HotelDetails = () => {
         </>
       )}
 
-      {/* Reels */}
-      <Divider orientation="left">Reels</Divider>
+      <Divider orientation="left">Reels ({reelsList.length})</Divider>
       {reelsList.length > 0 ? (
         <Row gutter={[16, 16]}>
           {reelsList.map((reel) => (
@@ -324,26 +293,6 @@ const HotelDetails = () => {
                   }}
                   onClick={() => handleReelClick(reel.content)}
                 />
-
-                <Popconfirm
-                  title="Are you sure you want to delete this reel?"
-                  onConfirm={() => handleDeleteReel(reel._id)}
-                  okText="Yes"
-                  cancelText="No"
-                >
-                  <Button
-                    type="danger"
-                    shape="circle"
-                    icon={<DeleteOutlined />}
-                    style={{
-                      position: "absolute",
-                      top: "10px",
-                      right: "10px",
-                      zIndex: 10,
-                    }}
-                  />
-                </Popconfirm>
-
                 <div style={{ marginTop: "8px" }}>
                   <Text strong>{reel.title}</Text>
                   <br />
@@ -359,8 +308,7 @@ const HotelDetails = () => {
         <Empty description="No reels available" />
       )}
 
-      {/* Reviews */}
-      <Divider orientation="left">Reviews</Divider>
+      <Divider orientation="left">Reviews ({reviewsList.length})</Divider>
       {reviewsList.length > 0 ? (
         <List
           itemLayout="vertical"

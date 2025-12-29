@@ -250,7 +250,7 @@ const PropertyDetails = () => {
                 <Descriptions.Item label="City">{prop.city}</Descriptions.Item>
                 <Descriptions.Item label="State">{prop.state}</Descriptions.Item>
                 <Descriptions.Item label="Zip Code">{prop.pincode}</Descriptions.Item>
-                <Descriptions.Item label="Country">{prop.country}</Descriptions.Item>
+                <Descriptions.Item label="Country">India </Descriptions.Item>
               </Descriptions>
               {prop.latitude && prop.longitude && (
                 <a
@@ -276,7 +276,7 @@ const PropertyDetails = () => {
             >
               <Descriptions bordered column={{ xs: 1, sm: 2 }} size="small">
                 <Descriptions.Item label="Property ID">
-                  {prop.propertyId}
+                  {prop.permanentId}
                 </Descriptions.Item>
                 <Descriptions.Item label="Price">
                   ₹{prop.price?.toLocaleString()}

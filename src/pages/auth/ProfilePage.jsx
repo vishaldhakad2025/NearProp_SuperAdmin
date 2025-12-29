@@ -58,7 +58,7 @@ const ProfilePage = () => {
       </div>
       <Card
         className="shadow-md rounded-lg"
-        title={<span className="text-lg font-semibold">User Profile</span>}
+        title={<span className="text-lg font-semibold">Admin Profile</span>}
         // extra={
         //   <Button type="primary" icon={<EditOutlined />} onClick={handleEditOpen}>
         //     Edit

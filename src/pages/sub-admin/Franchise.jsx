@@ -20,7 +20,7 @@ import {
   CloseCircleOutlined,
   ReloadOutlined,
   UserOutlined,
-  ArrowLeftOutlined ,
+  ArrowLeftOutlined,
   ShopOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
@@ -37,7 +37,7 @@ const FranchiseList = () => {
   const [franchises, setFranchises] = useState([]);
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState("");
-const navigate = useNavigate();   // ← यह जोड़ा
+  const navigate = useNavigate();
   // Pagination
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -48,7 +48,6 @@ const navigate = useNavigate();   // ← यह जोड़ा
   const [selectedFranchiseId, setSelectedFranchiseId] = useState(null);
   const [comment, setComment] = useState("");
 
-  // Smart Token Getter (सभी संभावित नामों से लेगा)
   const getToken = () => {
     return (
       localStorage.getItem("subAdminToken") ||
@@ -122,36 +121,36 @@ const navigate = useNavigate();   // ← यह जोड़ा
   };
 
   // Reject with Comment
- // Reject with Comment + Error Toast
-const handleReject = async () => {
-  if (!comment.trim()) {
-    toast.warning("Please provide a reason for rejection");
-    return;
-  }
+  // Reject with Comment + Error Toast
+  const handleReject = async () => {
+    if (!comment.trim()) {
+      toast.warning("Please provide a reason for rejection");
+      return;
+    }
 
-  setLoading(true);
-  try {
-    await axios.put(
-      `${BASE_URL}/api/admin/permissions/franchisee/${selectedFranchiseId}/reject?comments=${encodeURIComponent(comment.trim())}`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    setLoading(true);
+    try {
+      await axios.put(
+        `${BASE_URL}/api/admin/permissions/franchisee/${selectedFranchiseId}/reject?comments=${encodeURIComponent(comment.trim())}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    toast.success("Franchise rejected successfully");
-    setCommentModalVisible(false);
-    setComment("");
-    setSelectedFranchiseId(null);
-    fetchFranchises(currentPage, pageSize);
-  } catch (err) {
-    const errorMsg = err.response?.data?.error?.message 
-      || err.response?.data?.message 
-      || "Failed to reject application";
+      toast.success("Franchise rejected successfully");
+      setCommentModalVisible(false);
+      setComment("");
+      setSelectedFranchiseId(null);
+      fetchFranchises(currentPage, pageSize);
+    } catch (err) {
+      const errorMsg = err.response?.data?.error?.message
+        || err.response?.data?.message
+        || "Failed to reject application";
 
-    toast.error(errorMsg);   // अब error toast में आएगा
-  } finally {
-    setLoading(false);
-  }
-};
+      toast.error(errorMsg);   // अब error toast में आएगा
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Load on mount
   useEffect(() => {
@@ -246,31 +245,31 @@ const handleReject = async () => {
         fontFamily: "'Inter', sans-serif",
       }}
     >
-        <div style={{ marginBottom: 24 }}>
-  <Button
-    type="primary"
-    shape="circle"
-    size="large"
-    icon={<ArrowLeftOutlined style={{ fontSize: 18 }} />}
-    onClick={() => navigate(-1)}  // पिछले पेज पर वापस जाएगा
-    style={{
-      width: 48,
-      height: 48,
-      background: 'linear-gradient(135deg, #1890ff, #096dd9)',
-      border: 'none',
-      boxShadow: '0 6px 16px rgba(24, 144, 255, 0.35)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}
-    className="back-button-hover"
-  />
-  
-  {/* Optional: Text के साथ चाहो तो ये भी use कर सकते हो */}
-  {/* <span style={{ marginLeft: 12, fontSize: 16, color: '#1890ff', fontWeight: 500 }}>
+      <div style={{ marginBottom: 24 }}>
+        <Button
+          type="primary"
+          shape="circle"
+          size="large"
+          icon={<ArrowLeftOutlined style={{ fontSize: 18 }} />}
+          onClick={() => navigate(-1)}  // पिछले पेज पर वापस जाएगा
+          style={{
+            width: 48,
+            height: 48,
+            background: 'linear-gradient(135deg, #1890ff, #096dd9)',
+            border: 'none',
+            boxShadow: '0 6px 16px rgba(24, 144, 255, 0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          className="back-button-hover"
+        />
+
+        {/* Optional: Text के साथ चाहो तो ये भी use कर सकते हो */}
+        {/* <span style={{ marginLeft: 12, fontSize: 16, color: '#1890ff', fontWeight: 500 }}>
       Back
     </span> */}
-</div>
+      </div>
       {/* Premium Card */}
       <Card
         headStyle={{ border: "none", padding: "24px 32px" }}

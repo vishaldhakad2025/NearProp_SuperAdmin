@@ -68,7 +68,7 @@ console.log(":properties", pendingProperties)
       sorter: true,
     },
     {
-      title: "Featured",
+      title: "Featured ",
       dataIndex: "featured",
       render: (val) => <Tag color={val ? "green" : "default"}>{val ? "Yes" : "No"}</Tag>,
     },
