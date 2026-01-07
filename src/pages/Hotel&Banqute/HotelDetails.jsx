@@ -105,13 +105,13 @@ const HotelDetails = () => {
 
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
-      <Button 
-        style={{ 
+      <Button
+        style={{
           marginBottom: "20px",
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-start"
-        }} 
+        }}
         onClick={() => navigate(-1)}
       >
         <BiLeftArrow style={{ marginRight: "8px" }} /> Back

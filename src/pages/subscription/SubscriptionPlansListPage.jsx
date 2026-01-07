@@ -1,3 +1,5 @@
+
+
 // src/pages/subscription/SubscriptionPlansListPage.jsx
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,6 +8,7 @@ import {
     getAllSubscriptionPlans,
     toggleSubscriptionPlanStatus,
     getSingleSubscriptionPlan,
+    deleteSubscriptionPlan,
 } from "../../redux/slices/subscriptionPlanSlice";
 import Swal from "sweetalert2";
 
@@ -24,6 +27,7 @@ import {
     EyeOutlined,
     PlusOutlined,
     PoweroffOutlined,
+    DeleteOutlined,
 } from "@ant-design/icons";
 
 const SubscriptionPlansListPage = () => {
@@ -82,6 +86,36 @@ const SubscriptionPlansListPage = () => {
                     })
                     .catch((error) => {
                         console.error("Toggle status failed:", error);
+                        // Error toast already handled in thunk
+                    });
+            }
+        });
+    };
+
+    // Delete with confirmation
+    const confirmDelete = (record) => {
+        Swal.fire({
+            title: "Delete this plan?",
+            text: `Are you sure you want to delete the "${record.name}" plan? This action cannot be undone.`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, Delete",
+            cancelButtonText: "Cancel",
+            confirmButtonColor: "#d33",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                dispatch(deleteSubscriptionPlan(record.id))
+                    .unwrap()
+                    .then(() => {
+                        fetchPlans();
+                        Swal.fire(
+                            "Deleted!",
+                            "Your plan has been deleted.",
+                            "success"
+                        );
+                    })
+                    .catch((error) => {
+                        console.error("Delete failed:", error);
                         // Error toast already handled in thunk
                     });
             }
@@ -159,6 +193,15 @@ const SubscriptionPlansListPage = () => {
                         >
                             {record.active ? "Deactivate" : "Activate"}
                         </Button>
+                    </Tooltip>
+
+                    <Tooltip title="Delete Plan">
+                        <Button
+                            type="text"
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => confirmDelete(record)}
+                        />
                     </Tooltip>
                 </Space>
             ),

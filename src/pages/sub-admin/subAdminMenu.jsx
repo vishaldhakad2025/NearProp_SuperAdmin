@@ -20,6 +20,8 @@ import { toast } from "react-toastify";
 import fetchSubAdmins from "../../redux/slices/subAdminSlice";
 import axios from "axios";
 import { BASE_URL } from "../../utils/axiosInstance";
+import ApprovalPgHostel from "../pghostel/Approvalpghostel";
+import HotelAndBanquetApproval from "../Hotel&Banqute/Hotelandbanquetapproval";
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -51,6 +53,22 @@ const pages = [
     path: "/property",
     component: <PropertyListss />,
     permissionKey: "PROPERTY"
+  },
+  {
+    key: "hotel and banquets",
+    label: "hotel and banquets",
+    icon: <HomeOutlined />,
+    path: "/hotelbanquets",
+    component: <HotelAndBanquetApproval />,
+    permissionKey: "PROPERTY"
+  },
+  {
+    key: "Pg hostels",
+    label: "Pg hostels",
+    icon: <HomeOutlined />,
+    path: "/pghostels",
+    component: <ApprovalPgHostel />,
+    permissionKey: "PROPERTY"
   }
 ];
 
@@ -65,9 +83,6 @@ const SubAdminLayout = () => {
     const page = pages.find((p) => p.key === key);
     if (page) navigate(page.path);
   };
-
-
-
 
   const getdata = () => {
 
@@ -144,7 +159,7 @@ const SubAdminLayout = () => {
     localStorage.removeItem("jwt");
 
     toast.success("Logged out successfully");
-    navigate("/sub-admin", { replace: true });
+    navigate("/", { replace: true });
   };
   // Determine current selected page
   const currentPage = pages.find((p) => p.path === location.pathname) || pages[0];
@@ -189,6 +204,21 @@ const SubAdminLayout = () => {
           >
             Logout
           </Button>
+
+          <button onClick={() => navigate("/subadminprofile")} className="p-[2px] rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:opacity-90 transition">
+            <div className="w-9 h-9 rounded-full overflow-hidden bg-white">
+              <img
+                src="https://imgs.search.brave.com/escqQ8ZcajwNi21WSqfUpZo9B9rNcmsmh42fdgstEI0/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3N5c3RlbS9y/ZXNvdXJjZXMvdGh1/bWJuYWlscy8wMzIv/MTc2LzE5MS9zbWFs/bC9idXNpbmVzcy1h/dmF0YXItcHJvZmls/ZS1ibGFjay1pY29u/LW1hbi1vZi11c2Vy/LXN5bWJvbC1pbi10/cmVuZHktZmxhdC1z/dHlsZS1pc29sYXRl/ZC1vbi1tYWxlLXBy/b2ZpbGUtcGVvcGxl/LWRpdmVyc2UtZmFj/ZS1mb3Itc29jaWFs/LW5ldHdvcmstb3It/d2ViLXZlY3Rvci5q/cGc"
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </button>
+
+
+
+
+
         </div>
       </Header>
 

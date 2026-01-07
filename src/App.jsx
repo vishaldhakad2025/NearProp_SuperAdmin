@@ -68,6 +68,19 @@ import Alllandlords from "./pages/pgHostal/Alllandlords";
 import Getlandlordbyid from "./pages/pgHostal/Getlandlordbyid";
 import PendingReels from "./pages/reels/PendingReels";
 import Enquiry from "./pages/inquiry/Enquiry";
+import Allpghostels from "./pages/pghostel/Allpghostels";
+import Advisordeveloper from "./pages/Advisordeveloper/Advisordeveloper";
+import Hotelandbanquetapproval from "./pages/Hotel&Banqute/Hotelandbanquetapproval";
+import Hotelbyid from "./pages/Hotel&Banqute/Hotelbyid";
+import Banquetbyid from "./pages/Hotel&Banqute/Banquetbyid";
+import Approvalpghostel from "./pages/pghostel/Approvalpghostel";
+import Pghostelbyid from "./pages/pghostel/Pghostelbyid";
+import Adminnotifications from "./pages/Adminnotificaiton/Adminnotifications";
+import Allnotifications from "./pages/Adminnotificaiton/Allnotificaitons";
+import HotelAndBanquetApproval from "./pages/Hotel&Banqute/Hotelandbanquetapproval";
+import ApprovalPgHostel from "./pages/pghostel/Approvalpghostel";
+import Subadminprofile from "./Subadminprofile";
+
 
 const App = () => {
   return (
@@ -75,13 +88,11 @@ const App = () => {
 
       {/* Public Routes */}
       <Route path="/" element={<Login />} />
-      {/* <Route path="/" element={<Login />} /> */}
+      {/* <Route path="/" element={<SubAdminLogin />} /> */}
+      {/* <Route path="/sub-admin" element={<SubAdminLogin />} /> */}
       <Route path="/verify-otp" element={<OtpVerify />} />
-      <Route path="/sub-admin" element={<SubAdminLogin />} />
       <Route path="/sub-verify-otp" element={<SubOtpVerify />} />
 
-
-      {/* SubAdmin का अलग रूट — बिल्कुल बाहर, dashboard से अलग */}
       <Route
         path="/subadmins"
         element={
@@ -109,7 +120,25 @@ const App = () => {
         }
       />
 
+      <Route
+        path="/hotelbanquets"
+        element={
+          <PrivateRoute roles={['SUBADMIN']}>
+            <HotelAndBanquetApproval />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/pghostels"
+        element={
+          <PrivateRoute roles={['SUBADMIN']}>
+            <ApprovalPgHostel />
+          </PrivateRoute>
+        }
+      />
+
       <Route path="enquiry" element={<Enquiry />} />
+      <Route path="/subadminprofile" element={<Subadminprofile />} />
 
 
       {/* Admin Dashboard — सब कुछ इसके अंदर */}
@@ -143,10 +172,8 @@ const App = () => {
         <Route path="reels" element={<ReelManagement />} />
         <Route path="pendingreels" element={<PendingReels />} />
 
-
-
-        {/* <Route path="landlords" element={<LandlordDetailsPage />} /> */}
-
+        <Route path="pghostels" element={<Allpghostels />} />
+        <Route path="advisordeveloper" element={<Advisordeveloper />} />
 
         {/* यह सिर्फ ADMIN देखेगा — SubAdmin Management */}
         <Route
@@ -165,6 +192,7 @@ const App = () => {
 
         {/* Hotel & Banquet Routes */}
         <Route path="plan" element={<HotelPlansPage />} />
+        <Route path="hotelsbanquetsapproval" element={<Hotelandbanquetapproval />} />
         <Route path="owners" element={<OwnerList />} />
         <Route path="owners/:id" element={<OwnerDetail />} />
         <Route path="all-hotels" element={<AllHotels />} />
@@ -179,11 +207,33 @@ const App = () => {
         {/* <Route path="landlords/:id" element={<LandlordDetailsPage />} /> */}
         <Route path="pg-hostel" element={<PropertyList />} />
 
+        {/* pending pg hostel approvals */}
+        <Route path="pghostelapprove" element={<Approvalpghostel />} />
+
+        {/* send admin notifications */}
+        <Route path="notifications" element={<Adminnotifications />} />
+        <Route path="allnotifications" element={<Allnotifications />} />
+
+
         <Route path="*" element={<NotFound />} />
       </Route>
 
+      {/* get hotel by id pending */}
+      <Route path="/api/hotels/:id" element={<Hotelbyid />} />
+      {/* get banquet by id pending */}
+      <Route path="/api/banquet-halls/:id" element={<Banquetbyid />} />
+
+      {/* get pg hostel by id   */}
+
+      <Route path="/pghostelbyid/:id" element={<Pghostelbyid />} />
+
       {/* 404 - बाहर का 404 */}
       <Route path="*" element={<NotFound />} />
+
+
+
+
+
     </Routes>
   );
 };

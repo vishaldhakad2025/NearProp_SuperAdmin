@@ -91,6 +91,7 @@ const AdvertisementViewPage = () => {
 
         <Title level={5}>Created By</Title>
         <Descriptions bordered size="small" column={1}>
+          <Descriptions.Item label="Id">{ad.createdBy?.id}</Descriptions.Item>
           <Descriptions.Item label="Name">{ad.createdBy?.name}</Descriptions.Item>
           <Descriptions.Item label="Email">{ad.createdBy?.email}</Descriptions.Item>
           <Descriptions.Item label="Phone">{ad.createdBy?.mobileNumber}</Descriptions.Item>

@@ -9,10 +9,14 @@ export const getAllSubscriptionPlans = createAsyncThunk(
   "subscriptionPlans/getAll",
   async ({ page = 0, size = 10 } = {}, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.get(
-        `${apiPrefix}/admin/subscription-plans?page=${page}&size=${size}&sortBy=createdAt&direction=DESC`
-      );
-      return res.data.data;
+      const res = await axiosInstance.get(`/api/admin/subscription-plans/all`, {
+        params: {
+          page,
+          size,
+        },
+      });
+
+      return res.data.data; // ✅ backend response data
     } catch (err) {
       toastError("Failed to load plans.");
       return rejectWithValue(err.response?.data?.message || err.message);

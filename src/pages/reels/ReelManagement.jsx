@@ -28,7 +28,6 @@ import {
   CloseOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import ReelDetail from "./ReelDetail";
 import { toastError, toastSuccess } from "../../utils/toast";
 
 const { TextArea } = Input;
@@ -38,7 +37,6 @@ const ReelManagement = () => {
   const navigate = useNavigate();
   const { reels: reduxReels, loading } = useSelector((state) => state.reels);
 
-  const [selectedReel, setSelectedReel] = useState(null);
   const [activeTab, setActiveTab] = useState("pending");
   const [pendingReels, setPendingReels] = useState([]);
   const [loadingPending, setLoadingPending] = useState(false);
@@ -47,6 +45,12 @@ const ReelManagement = () => {
     id: null,
     reason: "",
   });
+  const [viewModal, setViewModal] = useState({
+    visible: false,
+    data: null,
+  });
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
 
   // Fetch all pending reels (admin only)
   const fetchPending = async () => {
@@ -80,47 +84,10 @@ const ReelManagement = () => {
     }
   };
 
-  // SAME API for viewing any reel by ID (used in BOTH tabs)
-  const fetchReelById = async (reelId) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`https://api.nearprop.com/api/reels/${reelId}`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) throw new Error("Reel not found or access denied");
-
-      const reelData = await response.json();
-      const reel = reelData.data || reelData; // Adjust based on your API response structure
-
-      if (reel) {
-        setSelectedReel(reel);
-      } else {
-        toastError("Reel not found");
-      }
-    } catch (err) {
-      toastError("Failed to load reel details");
-      // Don't fallback to list here — let normal loading happen
-    }
-  };
-
-  // Main effect: Check URL for reelId and load it if present (works on both tabs)
+  // Main effect: Load data based on tab
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const reelIdFromUrl = urlParams.get("reelId");
-
-    if (reelIdFromUrl && !selectedReel) {
-      fetchReelById(reelIdFromUrl);
-      return; // Skip normal list loading until we know if single reel loads
-    }
-
-    // Normal loading when no specific reel requested
     if (activeTab === "pending") {
-      if (pendingReels.length === 0 && !selectedReel) {
+      if (pendingReels.length === 0) {
         fetchPending();
       }
     } else {
@@ -132,7 +99,7 @@ const ReelManagement = () => {
         })
       );
     }
-  }, [activeTab, selectedReel, pendingReels.length, dispatch]);
+  }, [activeTab, dispatch]);
 
   const handleApprove = async (id) => {
     try {
@@ -148,7 +115,6 @@ const ReelManagement = () => {
       if (!response.ok) throw new Error("Failed to approve");
       toastSuccess("Reel approved successfully");
       fetchPending();
-      if (selectedReel?.id === id) setSelectedReel(null); // Optional: close detail if approved
     } catch (err) {
       toastError("Failed to approve reel");
     }
@@ -169,7 +135,6 @@ const ReelManagement = () => {
       toastSuccess("Reel rejected successfully");
       setRejectModal({ visible: false, id: null, reason: "" });
       fetchPending();
-      if (selectedReel?.id === id) setSelectedReel(null);
     } catch (err) {
       toastError("Failed to reject reel");
     }
@@ -200,7 +165,6 @@ const ReelManagement = () => {
       .unwrap()
       .then(() => {
         toastSuccess("Reel deleted successfully");
-        if (selectedReel?.id === id) setSelectedReel(null);
       })
       .catch(() => toastError("Failed to delete reel"));
   };
@@ -211,6 +175,15 @@ const ReelManagement = () => {
     } else {
       dispatch(likeReel(reel.id));
     }
+  };
+
+  const handleView = (record) => {
+    console.log("Viewing reel data:", record); // Debug: Check if videoUrl is present and valid
+    setViewModal({ visible: true, data: record });
+  };
+
+  const handleViewClose = () => {
+    setViewModal({ visible: false, data: null });
   };
 
   const baseColumns = [
@@ -270,23 +243,30 @@ const ReelManagement = () => {
           <Button
             type="link"
             icon={<EyeOutlined />}
-            onClick={() => setSelectedReel(record)}
-          />
+            onClick={() => handleView(record)}
+          >
+            View
+          </Button>
         </Tooltip>
-        <Tooltip title="Approve Reel">
-          <Button
-            type="link"
-            icon={<CheckOutlined className="text-green-500" />}
-            onClick={() => handleApprove(record.id)}
-          />
-        </Tooltip>
+        <Popconfirm
+          title="Are you sure you want to approve this reel?"
+          onConfirm={() => handleApprove(record.id)}
+          okText="Yes"
+          cancelText="No"
+        >
+          <Button type="link" icon={<CheckOutlined className="text-green-500" />}>
+            Approve
+          </Button>
+        </Popconfirm>
         <Tooltip title="Reject Reel">
           <Button
             type="link"
             danger
             icon={<CloseOutlined />}
             onClick={() => showRejectModal(record.id)}
-          />
+          >
+            Reject
+          </Button>
         </Tooltip>
       </Space>
     ),
@@ -301,10 +281,12 @@ const ReelManagement = () => {
           <Button
             type="link"
             icon={<EyeOutlined />}
-            onClick={() => setSelectedReel(record)}
-          />
+            onClick={() => handleView(record)}
+          >
+            View
+          </Button>
         </Tooltip>
-        <Tooltip title={record.liked ? "Unlike Reel" : "Like Reel"}>
+        {/* <Tooltip title={record.liked ? "Unlike Reel" : "Like Reel"}>
           <Button
             type="link"
             onClick={() => handleLikeToggle(record)}
@@ -315,15 +297,19 @@ const ReelManagement = () => {
                 <LikeOutlined className="text-green-500" />
               )
             }
-          />
-        </Tooltip>
+          >
+            {record.liked ? "Unlike" : "Like"}
+          </Button>
+        </Tooltip> */}
         <Popconfirm
-          title="Are you sure to delete this reel?"
+          title="Are you sure you want to delete this reel?"
           onConfirm={() => handleDelete(record.id)}
           okText="Yes"
           cancelText="No"
         >
-          <Button danger type="link" icon={<DeleteOutlined />} />
+          <Button danger type="link" icon={<DeleteOutlined />}>
+            Delete
+          </Button>
         </Popconfirm>
       </Space>
     ),
@@ -334,9 +320,21 @@ const ReelManagement = () => {
 
   const safePendingReels = Array.isArray(pendingReels) ? pendingReels : [];
   const safeReduxReels = Array.isArray(reduxReels) ? reduxReels : [];
-  const currentData = activeTab === "pending" ? safePendingReels : safeReduxReels;
+  let currentData = activeTab === "pending" ? safePendingReels : safeReduxReels;
   const currentLoading = activeTab === "pending" ? loadingPending : loading;
   const currentColumns = activeTab === "pending" ? pendingColumns : allColumns;
+
+  // Client-side pagination
+  const paginatedData = currentData.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
+  const total = currentData.length;
+
+  const handleTableChange = (pagination) => {
+    setPage(pagination.current);
+    setPageSize(pagination.pageSize);
+  };
 
   return (
     <div className="p-4 sm:p-6 bg-white rounded-xl shadow-md">
@@ -354,30 +352,155 @@ const ReelManagement = () => {
         className="mb-4"
       />
 
-      {!selectedReel ? (
-        <div className="bg-[#f5f5f5c5] rounded-md mt-3">
-          {currentLoading ? (
-            <div className="flex justify-center items-center py-20">
-              <Spin size="large" />
+      <div className="bg-[#f5f5f5c5] rounded-md mt-3">
+        {currentLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <Spin size="large" />
+          </div>
+        ) : (
+          <Table
+            dataSource={paginatedData}
+            columns={currentColumns}
+            rowKey={(record) => record.id || Math.random()}
+            pagination={{
+              current: page,
+              pageSize,
+              total,
+              showSizeChanger: true,
+              pageSizeOptions: ["50", "100", "150"],
+              onChange: (p, size) => {
+                setPage(p);
+                if (size) setPageSize(size);
+              },
+              onShowSizeChange: (current, size) => {
+                setPageSize(size);
+                setPage(1);
+              },
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} of ${total} reels`,
+            }}
+            bordered
+            scroll={{ x: "max-content" }}
+            onChange={handleTableChange}
+          />
+        )}
+      </div>
+
+      {/* View Modal */}
+      <Modal
+        title="Reel Details"
+        open={viewModal.visible}
+        onCancel={handleViewClose}
+        footer={null}
+        width={900}
+      >
+        {viewModal.data ? (
+          <div className="space-y-6">
+            <div className="flex justify-center">
+              {viewModal.data.videoUrl ? (
+                <video
+                  src={viewModal.data.videoUrl}
+                  controls
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full max-w-2xl h-96 object-contain rounded-lg shadow-lg"
+                  preload="metadata"
+                  onError={(e) => {
+                    console.error("Video load error:", e);
+                    toastError("Failed to load video. Check console for details.");
+                  }}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <VideoCameraOutlined className="text-6xl text-gray-400 mb-2" />
+                  <p className="text-gray-500">No video available</p>
+                </div>
+              )}
             </div>
-          ) : (
-            <Table
-              dataSource={currentData}
-              columns={currentColumns}
-              rowKey={(record) => record.id || Math.random()}
-              pagination={{ pageSize: 6, responsive: true }}
-              bordered
-              scroll={{ x: "max-content" }}
-            />
-          )}
-        </div>
-      ) : (
-        <ReelDetail
-          selectedReel={selectedReel}
-          setSelectedReel={setSelectedReel}
-          navigate={navigate}
-        />
-      )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              {/* Left Section */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">
+                  Title: {viewModal.data.title || "No title"}
+                </h3>
+
+                <p className="text-sm text-gray-600 mb-1">
+                  <strong>Views:</strong> {viewModal.data.viewCount || 0}
+                </p>
+
+                <p className="text-sm text-gray-600 mb-1">
+                  <strong>Likes:</strong> {viewModal.data.likeCount || 0}
+                </p>
+
+                <p className="text-sm text-gray-600 mb-1">
+                  <strong>Created:</strong>{" "}
+                  {viewModal.data.createdAt
+                    ? new Date(viewModal.data.createdAt).toLocaleDateString()
+                    : "Not available"}
+                </p>
+              </div>
+
+              {/* Right Section */}
+              <div>
+                <p className="text-sm text-gray-600 mb-2">
+                  <strong>Status:</strong>{" "}
+                  <Tag
+                    color={
+                      viewModal.data.status === "APPROVED"
+                        ? "green"
+                        : viewModal.data.status === "REJECTED"
+                          ? "red"
+                          : "orange"
+                    }
+                  >
+                    {viewModal.data.status || "Pending"}
+                  </Tag>
+                </p>
+
+                {/* OWNER DETAILS */}
+                {viewModal.data.owner && (
+                  <div className="mt-3 border-t pt-3">
+                    <h4 className="font-semibold mb-2">Owner Details</h4>
+
+                    <div className="flex items-center gap-3 mb-2">
+                      <img
+                        src={viewModal.data.owner.profileImageUrl}
+                        alt="Owner"
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="text-sm font-medium">
+                          {viewModal.data.owner.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {viewModal.data.owner.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-gray-600 mb-1">
+                      <strong>Mobile:</strong> {viewModal.data.owner.mobileNumber}
+                    </p>
+
+                    <p className="text-sm text-gray-600 mb-1">
+                      <strong>Roles:</strong>{" "}
+                      {viewModal.data.owner.roles?.join(", ")}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </div>
+        ) : (
+          <div className="flex justify-center py-8">
+            <Spin />
+          </div>
+        )}
+      </Modal>
 
       <Modal
         title="Reject Reason"

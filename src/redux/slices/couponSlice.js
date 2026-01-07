@@ -10,7 +10,10 @@ export const createCoupon = createAsyncThunk(
   "coupons/create",
   async (payload, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.post(`${apiPrefix}/admin/coupons`, payload);
+      const res = await axiosInstance.post(
+        `${apiPrefix}/admin/coupons`,
+        payload
+      );
       toastSuccess("Coupon created successfully.");
       return res.data;
     } catch (err) {
@@ -40,7 +43,7 @@ export const getSingleCoupon = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const res = await axiosInstance.get(`${apiPrefix}/admin/coupons/${id}`);
-      console.log("res",res)
+      console.log("res", res);
       return res.data.data;
     } catch (err) {
       toastError("Failed to fetch coupon.");
@@ -54,7 +57,10 @@ export const updateCoupon = createAsyncThunk(
   "coupons/update",
   async ({ id, data }, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.put(`${apiPrefix}/admin/coupons/${id}`, data);
+      const res = await axiosInstance.put(
+        `${apiPrefix}/admin/coupons/${id}`,
+        data
+      );
       toastSuccess("Coupon updated successfully.");
       return res.data;
     } catch (err) {
@@ -70,11 +76,16 @@ export const toggleCouponStatus = createAsyncThunk(
   async ({ id, active }, { rejectWithValue }) => {
     try {
       const status = active ? "deactivate" : "activate";
-      const res = await axiosInstance.put(`${apiPrefix}/admin/coupons/${id}/${status}`);
-      toastSuccess(`Coupon ${active ? "deactivated" : "activated"} successfully.`);
+
+      const res = await axiosInstance.patch(`/api/coupons/${id}/${status}`);
+
+      toastSuccess(
+        `Coupon ${active ? "deactivated" : "activated"} successfully`
+      );
+
       return { id, active: !active };
     } catch (err) {
-      toastError("Failed to update coupon status.");
+      toastError("Failed to update coupon status");
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
@@ -121,7 +132,9 @@ const couponSlice = createSlice({
       })
 
       .addCase(toggleCouponStatus.fulfilled, (state, action) => {
-        const index = state.coupons.findIndex((c) => c.id === action.payload.id);
+        const index = state.coupons.findIndex(
+          (c) => c.id === action.payload.id
+        );
         if (index !== -1) state.coupons[index].active = action.payload.active;
       })
 

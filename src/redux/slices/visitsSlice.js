@@ -3,17 +3,15 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../../utils/axiosInstance";
 import axios from "axios";
 
-
 export const fetchVisits = createAsyncThunk(
   "visits/fetchVisits",
-  async ({ status = "PENDING", page = 0, size = 10 }, { rejectWithValue }) => {
+  async ({ rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.get(
-        `https://api.nearprop.com/api/visits/admin/by-status?status=${status}&page=${page}&size=${size}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await axios.get(`https://api.nearprop.com/api/visits/admin`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       // console.log("✅ fetchVisits response:", res.data);
       return res.data;
@@ -23,7 +21,6 @@ export const fetchVisits = createAsyncThunk(
     }
   }
 );
-
 
 /**
  * 🔹 Fetch visit by ID
@@ -36,7 +33,10 @@ export const fetchVisitById = createAsyncThunk(
       console.log("✅ fetchVisitById response:", res.data);
       return res.data;
     } catch (err) {
-      console.error("❌ fetchVisitById error:", err.response?.data || err.message);
+      console.error(
+        "❌ fetchVisitById error:",
+        err.response?.data || err.message
+      );
       return rejectWithValue(err.response?.data || err.message);
     }
   }
@@ -56,7 +56,10 @@ export const updateVisitStatus = createAsyncThunk(
       console.log("✅ updateVisitStatus response:", res.data);
       return { id, status, notes };
     } catch (err) {
-      console.error("❌ updateVisitStatus error:", err.response?.data || err.message);
+      console.error(
+        "❌ updateVisitStatus error:",
+        err.response?.data || err.message
+      );
       return rejectWithValue(err.response?.data || err.message);
     }
   }
@@ -94,7 +97,6 @@ const visitsSlice = createSlice({
         state.totalPages = action.payload.totalPages || 0;
         state.totalElements = action.payload.totalElements || 0;
       })
-
 
       // ✅ fetchVisitById
       .addCase(fetchVisitById.pending, (state) => {

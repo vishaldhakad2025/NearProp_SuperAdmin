@@ -48,11 +48,15 @@ const CouponListPage = () => {
       confirmButtonColor: record.active ? "#d33" : "#3085d6",
     }).then((result) => {
       if (result.isConfirmed) {
-        dispatch(toggleCouponStatus({ couponId: record.id, active: record.active }));
+        dispatch(
+          toggleCouponStatus({
+            id: record.id,
+            active: record.active
+          })
+        );
       }
     });
   };
-
 
 
   const handleDelete = (record) => {

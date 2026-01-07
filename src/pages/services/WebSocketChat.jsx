@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { toastWarning } from '../../utils/toast';
 
 const WebSocketChat = () => {
   const [messages, setMessages] = useState([]);
@@ -61,7 +62,7 @@ console.log("socket success response : ", socket)
       socketRef.current.send(JSON.stringify(messagePayload));
       setInput('');
     } else {
-      alert('WebSocket not connected.');
+      toastWarning('WebSocket not connected.');
     }
   };
 

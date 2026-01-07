@@ -489,6 +489,7 @@ const UserManagementDashboard = () => {
               <Option value="DEVELOPER">Developer</Option>
               <Option value="ADVISOR">Advisor</Option>
               <Option value="ADMIN">Admin</Option>
+              <Option value="SUBADMIN">Sub Admin</Option>
             </Select>
 
             <RangePicker

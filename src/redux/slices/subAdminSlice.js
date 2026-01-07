@@ -610,6 +610,8 @@ export const fetchAdvertisementById = createAsyncThunk(
     }
   }
 );
+
+
 /* ==================== 3. CREATE ADVERTISEMENT (multipart + headers) ==================== */
 export const createAdvertisement = createAsyncThunk(
   'advertisement/create',
@@ -634,6 +636,8 @@ export const createAdvertisement = createAsyncThunk(
     }
   }
 );
+
+
 export const fetchFranchiseById = createAsyncThunk(
   "subAdmin/fetchFranchiseById",
   async (id, { rejectWithValue }) => {
@@ -664,6 +668,10 @@ export const fetchFranchiseById = createAsyncThunk(
     }
   }
 );
+
+
+
+
 /* ==================== 4. DELETE ADVERTISEMENT ==================== */
 export const deleteAdvertisement = createAsyncThunk(
   "subAdmin/deleteAdvertisementById",

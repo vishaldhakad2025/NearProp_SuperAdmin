@@ -115,6 +115,7 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
       items: [
 
         { icon: <PercentCircle size={18} />, label: "Subscription Hotel&banqute", url: "/dashboard/plan" },
+        { icon: <PercentCircle size={18} />, label: "Approval Hotel&banqutes", url: "/dashboard/hotelsbanquetsapproval" },
         { icon: <User2 size={18} />, label: "Hotel&Banqute Owners", url: "/dashboard/owners" },
         { icon: <HomeOutlined size={18} />, label: "All Hotels", url: "/dashboard/all-hotels" },
         { icon: <FaHotel size={18} />, label: "All Banquets", url: "/dashboard/all-banquets" },
@@ -123,14 +124,34 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
         // { icon: <MdDashboardCustomize size={18} />, label: "Hotel & Banquet Dashboard", url: "/dashboard/hotel-banquet-dashboard" },
       ],
     },
+
+
+
     {
       section: "Pg & Hostal Management",
       items: [
+        { icon: <Layers size={18} />, label: "Pg & Hostel Subscriptions", url: "/dashboard/pghostels" },
+        { icon: <Layers size={18} />, label: "Pg & Hostel Approvals", url: "/dashboard/pghostelapprove" },
         { icon: <Layers size={18} />, label: "Landlords", url: "/dashboard/landlords" },
         { icon: <Layers size={18} />, label: "Enquiry", url: "/enquiry" },
 
       ],
     },
+    {
+      section: "Advisor & Developer ",
+      items: [
+        { icon: <Layers size={18} />, label: "Advisor & Developer", url: "/dashboard/advisordeveloper" },
+      ],
+    },
+
+    {
+      section: "Admin Notification Panel ",
+      items: [
+        { icon: <Layers size={18} />, label: "Send Notifications", url: "/dashboard/notifications" },
+        { icon: <Layers size={18} />, label: "All Notificaitons", url: "/dashboard/allnotifications" },
+      ],
+    },
+
 
 
 

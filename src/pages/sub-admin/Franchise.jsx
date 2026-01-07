@@ -1,4 +1,4 @@
-// src/pages/FranchiseList.jsx
+
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -26,7 +26,7 @@ import {
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNavigate } from "react-router-dom";   // ← यह लाइन जोड़ो
+import { useNavigate } from "react-router-dom";
 
 import { BASE_URL } from "../../utils/axiosInstance";
 

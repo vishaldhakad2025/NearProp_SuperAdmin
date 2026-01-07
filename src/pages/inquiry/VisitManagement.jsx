@@ -14,6 +14,7 @@ import {
   Divider,
   Row,
   Col,
+  Select,
 } from "antd";
 import {
   EyeOutlined,
@@ -26,25 +27,56 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
 const { Search } = Input;
+const { Option } = Select;
 
 export default function VisitManagement() {
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { visits, loading, totalElements } = useSelector((s) => s.visits);
+  const { visits, loading } = useSelector((s) => s.visits);
 
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(6);
+  const [pageSize, setPageSize] = useState(50);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState(null);
 
+  const FETCH_SIZE = 10000;
+
   useEffect(() => {
     if (token) {
-      dispatch(fetchVisits({ status: "PENDING", page: page - 1, size: pageSize, token }));
+      dispatch(
+        fetchVisits({
+          page: 0,
+          size: FETCH_SIZE,
+          token,
+        })
+      );
     }
-  }, [dispatch, token, page]);
+  }, [dispatch, token]);
+
+  // Client-side filtering
+  let filteredVisits = visits || [];
+  if (search.trim()) {
+    filteredVisits = filteredVisits.filter(
+      (v) =>
+        v.user?.name?.toLowerCase().includes(search.toLowerCase()) ||
+        v.user?.phone?.toLowerCase().includes(search.toLowerCase()) ||
+        v.property?.title?.toLowerCase().includes(search.toLowerCase())
+    );
+  }
+  if (statusFilter !== "ALL") {
+    filteredVisits = filteredVisits.filter((v) => v.status === statusFilter);
+  }
+
+  // Client-side pagination
+  const paginatedVisits = filteredVisits.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
+  const totalFiltered = filteredVisits.length;
 
   const handleUpdate = (id, status) => {
     const notes = status === "CONFIRMED" ? "Visit confirmed by admin" : "Visit rejected by admin";
@@ -53,7 +85,14 @@ export default function VisitManagement() {
       .unwrap()
       .then(() => {
         toast.success(`Visit ${status.toLowerCase()} successfully!`);
-        dispatch(fetchVisits({ status: "PENDING", page: page - 1, size: pageSize, token }));
+        // Refetch all data
+        dispatch(
+          fetchVisits({
+            page: 0,
+            size: FETCH_SIZE,
+            token,
+          })
+        );
       })
       .catch((err) => {
         toast.error(err?.message || "Failed to update visit status");
@@ -178,13 +217,6 @@ export default function VisitManagement() {
     },
   ];
 
-  const filteredVisits = visits.filter(
-    (v) =>
-      v.user?.name?.toLowerCase().includes(search.toLowerCase()) ||
-      v.user?.phone?.toLowerCase().includes(search.toLowerCase()) ||
-      v.property?.title?.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto bg-white rounded-xl shadow-lg">
       {/* Header */}
@@ -198,11 +230,31 @@ export default function VisitManagement() {
           <Search
             placeholder="Search by buyer name, phone or property..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             allowClear
             style={{ width: 300 }}
             size="large"
           />
+          <Select
+            value={statusFilter}
+            onChange={(value) => {
+              setStatusFilter(value);
+              setPage(1);
+            }}
+            style={{ width: 150 }}
+            size="large"
+            placeholder="Filter by Status"
+            allowClear
+            onClear={() => setStatusFilter("ALL")}
+          >
+            <Option value="ALL">All Status</Option>
+            <Option value="PENDING">Pending</Option>
+            <Option value="CONFIRMED">Confirmed</Option>
+            <Option value="REJECTED">Rejected</Option>
+          </Select>
           <Button type="primary" size="large" onClick={handleExportExcel}>
             Export to Excel
           </Button>
@@ -212,7 +264,7 @@ export default function VisitManagement() {
       {/* Table */}
       <Table
         columns={columns}
-        dataSource={filteredVisits}
+        dataSource={paginatedVisits}
         rowKey="id"
         loading={loading}
         pagination={false}
@@ -221,14 +273,19 @@ export default function VisitManagement() {
       />
 
       {/* Pagination */}
-      {totalElements > pageSize && (
+      {totalFiltered > 0 && (
         <div className="flex justify-center mt-8">
           <Pagination
             current={page}
             pageSize={pageSize}
-            total={totalElements}
+            total={totalFiltered}
             onChange={(p) => setPage(p)}
-            showSizeChanger={false}
+            onShowSizeChange={(current, size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
+            showSizeChanger={true}
+            pageSizeOptions={["50", "100", "200"]}
             showQuickJumper
           />
         </div>

@@ -17,7 +17,27 @@ const SubscriptionPlanForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { singlePlan, loading } = useSelector((state) => state.subscriptionPlans);
+  const { singlePlan, loading } = useSelector(
+    (state) => state.subscriptionPlans
+  );
+
+  /* =======================
+     AUTO CALCULATION LOGIC
+     ======================= */
+  const maxProperties = Form.useWatch("maxProperties", form);
+  const maxReelsPerProperty = Form.useWatch("maxReelsPerProperty", form);
+
+  useEffect(() => {
+    if (
+      typeof maxProperties === "number" &&
+      typeof maxReelsPerProperty === "number"
+    ) {
+      form.setFieldsValue({
+        maxTotalReels: maxProperties * maxReelsPerProperty,
+      });
+    }
+  }, [maxProperties, maxReelsPerProperty, form]);
+  /* ======================= */
 
   useEffect(() => {
     if (id) {
@@ -36,6 +56,9 @@ const SubscriptionPlanForm = () => {
       ...values,
       price: Number(values.price),
       marketingFee: Number(values.marketingFee),
+      maxTotalReels: Number(
+        values.maxProperties * values.maxReelsPerProperty
+      ),
     };
 
     if (id) {
@@ -48,7 +71,10 @@ const SubscriptionPlanForm = () => {
 
   return (
     <div className="p-4 flex justify-center">
-      <Card className="w-full max-w-6xl" title={id ? "Edit Plan" : "Create New Plan"}>
+      <Card
+        className="w-full max-w-6xl"
+        title={id ? "Edit Plan" : "Create New Plan"}
+      >
         <Form
           form={form}
           layout="vertical"
@@ -56,52 +82,80 @@ const SubscriptionPlanForm = () => {
           initialValues={{ active: true, type: "SELLER" }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Form.Item name="name" label="Plan Name" rules={[{ required: true }]}> 
+            <Form.Item name="name" label="Plan Name" rules={[{ required: true }]}>
               <Input placeholder="e.g., Basic" />
             </Form.Item>
 
-            {/* Enhanced Types */}
-            <Form.Item name="type" label="Type" rules={[{ required: true }]}> 
+            <Form.Item name="type" label="Type" rules={[{ required: true }]}>
               <Select placeholder="Select Plan Type">
                 <Option value="SELLER">Seller</Option>
                 <Option value="ADVISOR">Advisor</Option>
                 <Option value="DEVELOPER">Developer</Option>
-                {/* <Option value="FRANCHISEE">Franchisee</Option> */}
-                {/* <Option value="PROPERTY">Property</Option> */}
               </Select>
             </Form.Item>
 
-            <Form.Item name="price" label="Price (₹)" rules={[{ required: true }]}> 
+            <Form.Item name="price" label="Price (₹)" rules={[{ required: true }]}>
               <InputNumber min={0} className="w-full" />
             </Form.Item>
-            
-            {/* <Form.Item name="marketingFee" label="Marketing Fee (₹)" rules={[{ required: true }]}> 
-              <InputNumber min={0} className="w-full" />
-            </Form.Item> */}
-            <Form.Item name="durationDays" label="Duration (Days)" rules={[{ required: true }]}> 
+
+            <Form.Item
+              name="durationDays"
+              label="Duration (Days)"
+              rules={[{ required: true }]}
+            >
               <InputNumber min={1} className="w-full" />
             </Form.Item>
-            <Form.Item name="maxProperties" label="Max Properties" rules={[{ required: true }]}> 
+
+            <Form.Item
+              name="maxProperties"
+              label="Max Properties"
+              rules={[{ required: true }]}
+            >
               <InputNumber min={1} className="w-full" />
             </Form.Item>
-            <Form.Item name="maxReelsPerProperty" label="Max Reels / Property" rules={[{ required: true }]}> 
+
+            <Form.Item
+              name="maxReelsPerProperty"
+              label="Max Reels / Property"
+              rules={[{ required: true }]}
+            >
               <InputNumber min={0} className="w-full" />
             </Form.Item>
-            <Form.Item name="maxTotalReels" label="Max Total Reels" rules={[{ required: true }]}> 
+
+            <Form.Item
+              name="maxTotalReels"
+              label="Max Total Reels"
+              rules={[{ required: true }]}
+            >
+              <InputNumber min={0} className="w-full" disabled />
+            </Form.Item>
+
+            <Form.Item
+              name="contentHideAfterDays"
+              label="Hide Content After (Days)"
+              rules={[{ required: true }]}
+            >
               <InputNumber min={0} className="w-full" />
             </Form.Item>
-            <Form.Item name="contentHideAfterDays" label="Hide Content After (Days)" rules={[{ required: true }]}> 
+
+            <Form.Item
+              name="contentDeleteAfterDays"
+              label="Delete Content After (Days)"
+              rules={[{ required: true }]}
+            >
               <InputNumber min={0} className="w-full" />
             </Form.Item>
-            <Form.Item name="contentDeleteAfterDays" label="Delete Content After (Days)" rules={[{ required: true }]}> 
-              <InputNumber min={0} className="w-full" />
-            </Form.Item>
+
             <Form.Item name="active" label="Active" valuePropName="checked">
               <Switch />
             </Form.Item>
           </div>
 
-          <Form.Item name="description" label="Description" rules={[{ required: true }]}> 
+          <Form.Item
+            name="description"
+            label="Description"
+            rules={[{ required: true }]}
+          >
             <TextArea rows={3} placeholder="Enter plan description" />
           </Form.Item>
 
